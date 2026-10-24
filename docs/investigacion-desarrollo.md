@@ -63,6 +63,8 @@ El juego es offline y de un solo jugador, así que "operar y monitorear" se rein
 
 ## Fuentes
 
+Nota: algunos enlaces apuntan a la documentación de Godot 4.4. El proyecto usa 4.7.2, así que ante cualquier diferencia manda la documentación de 4.7.
+
 - Documentación de Godot, línea de comandos: https://docs.godotengine.org/en/4.4/tutorials/editor/command_line_tutorial.html
 - Documentación de Godot, control de versiones: https://docs.godotengine.org/en/4.4/tutorials/best_practices/version_control_systems.html
 - Documentación de Godot, arquitectura de renderers: https://docs.godotengine.org/en/4.7/engine_details/architecture/internal_rendering_architecture.html

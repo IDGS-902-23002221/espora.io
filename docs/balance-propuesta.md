@@ -70,13 +70,16 @@ Si los NPC fueran más rápidos que el jugador desde el inicio, no se podría hu
 | `VIDA_ESPORA` | 3.5 | **Congelado** |
 | `VELOCIDAD_ESPORA` | 14.0 | Alcance efectivo aprox. 49 unidades, menor que el diámetro de la arena |
 | `COOLDOWN_DISPARO_JUGADOR` | 0.6 | |
-| `REGENERACION_PUNTO_DAÑO` | 4.0 | Segundos sin recibir impactos para recuperar 1 punto (propuesta, ver decisiones abiertas) |
+| `TIEMPO_REGENERACION_PUNTO` | 4.0 | Segundos sin recibir impactos para recuperar 1 punto. También es la ventana entre impactos para que cuenten como "seguidos" (decidido) |
 | `DURACION_ESPORA_ESCUDO` | 5.0 | |
 
 **Indicador de daño (3 puntos):**
 - Punto lleno: color cian. Punto vaciado: gris oscuro.
 - Al recibir un impacto, el punto parpadea en rojo unos 0.2 s y queda vacío.
 - Cuando los 3 están vacíos, el hongo es absorbido.
+- Los NPC muestran sus propios 3 puntos sobre la cabeza, con las mismas reglas.
+
+**Qué significa "3 impactos seguidos":** cada impacto reinicia un temporizador de `TIEMPO_REGENERACION_PUNTO`. Si vence sin nuevos impactos, el objetivo recupera 1 punto y el temporizador vuelve a correr hasta llenar los 3. Ejemplo: impacto, pausa de 5 s (recupera el punto), impacto, impacto: no se absorbe, porque no fueron seguidos.
 
 ---
 
@@ -102,7 +105,7 @@ Arena circular, radio `RADIO_MAPA = 60`.
 
 ## 6. Hordas (propuesta pendiente de confirmación)
 
-La noche se divide en **5 hordas de 90 s** (aprox. 7.5 min, dentro del objetivo de 5–10 min), con 5 s de pausa entre una y otra. Al terminar la horda 5 amanece y la partida termina. Como el jugador no tiene vidas, el fracaso no es un game over: es reaparecer más pequeño y perder tiempo y tamaño. El resultado final se mide por tamaño máximo, absorciones y tiempo.
+La noche se divide en **5 hordas de 90 s**, con 5 s de pausa entre una y otra (5 × 90 s + 4 pausas × 5 s = 470 s, aprox. 7.8 min, dentro del objetivo de 5–10 min). Al terminar la horda 5 amanece y la partida termina. **El tamaño del jugador se conserva entre hordas.** Como el jugador no tiene vidas, el fracaso no es un game over: es reaparecer más pequeño y perder tiempo y tamaño. El resultado final se mide por tamaño máximo, absorciones y tiempo.
 
 | Constante | Horda 1 | Horda 2 | Horda 3 | Horda 4 | Horda 5 |
 |---|---|---|---|---|---|

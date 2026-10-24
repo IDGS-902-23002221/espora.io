@@ -25,7 +25,7 @@ No cambiarlas, reinterpretarlas ni "mejorarlas" sin un ticket que lo pida explí
   - Cubensis → Pantano de Esporas (tamaños mixtos).
   - Melena → Cueva de Raíces (población que nace más pequeña, con evento ocasional de un roamer grande).
   - Luminaria → skin desbloqueable del jugador, no NPC de zona.
-- **Esporas:** único ataque del juego, lo usan el jugador y los NPC. **3 impactos seguidos** sobre el mismo objetivo lo absorben. Las esporas que no impactan desaparecen a los **3.5 s**.
+- **Esporas:** único ataque del juego, lo usan el jugador y los NPC. **3 impactos seguidos** sobre el mismo objetivo lo absorben. "Seguidos" significa que entre un impacto y el siguiente pasan menos de 4 s; si pasan 4 s sin recibir impactos, el objetivo regenera 1 punto de daño. Las esporas que no impactan desaparecen a los **3.5 s**.
 - **Absorción:** quien absorbe crece; el absorbido reaparece en otro punto del mapa **más pequeño** y con **cooldown breve**.
 - **Mapa:** una sola arena circular con 3 biomas (Bosque Bioluminiscente al centro, Pantano de Esporas en medio, Cueva de Raíces en los bordes). Partidas cortas (5–10 min), sin niveles secuenciales.
 - **Objetos especiales:** nutriente dorado (triplica el crecimiento), espora escudo (protege temporalmente de impactos), espora veloz (más velocidad unos segundos).
@@ -37,6 +37,9 @@ No cambiarlas, reinterpretarlas ni "mejorarlas" sin un ticket que lo pida explí
 
 - **El jugador NO tiene vidas ni game over por daño.** Si es absorbido, reaparece más pequeño con cooldown (storyboard 4).
 - **Indicador de daño:** 3 puntos en el HUD que cambian de color o se vacían con cada impacto de espora recibido (representan los 3 impactos que absorben al objetivo).
+- **Ventana de impactos:** cada impacto reinicia un temporizador de 4 s; si vence sin nuevos impactos, el objetivo recupera 1 punto. Se absorbe cuando los 3 puntos están vacíos.
+- **Los NPC también muestran sus 3 puntos** sobre la cabeza, con las mismas reglas.
+- **El tamaño del jugador se conserva entre hordas.**
 
 ### Propuestas pendientes de confirmación (tratar como PROVISIONALES)
 
@@ -46,9 +49,7 @@ No cambiarlas, reinterpretarlas ni "mejorarlas" sin un ticket que lo pida explí
 
 ### Decisiones abiertas (NO asumir; preguntar o dejar para un ticket de diseño)
 
-- ¿Los 3 impactos tienen ventana de tiempo o se reinician? (propuesta: los puntos se regeneran de a uno tras unos segundos sin recibir impactos; ver balance.)
-- ¿Los NPC también muestran los 3 puntos sobre su cabeza?
-- ¿El tamaño del jugador se conserva entre hordas?
+- Ninguna por ahora. Si surge una duda de diseño que no esté cubierta en este archivo, pregunta antes de asumir.
 
 ---
 
@@ -69,8 +70,8 @@ No cambiarlas, reinterpretarlas ni "mejorarlas" sin un ticket que lo pida explí
 | Estado | Herramienta | Nota |
 |---|---|---|
 | Aprobada | Git + GitHub | Control de versiones y base de CI |
-| Aprobada | gdUnit4 (addon dentro del proyecto) | Godot no trae test runner propio. Se instala desde AssetLib en el editor |
-| Instalada por el usuario | MCP de Godot (puente con el editor) | Documentar nombre y versión en el ticket de setup y justificarlo ahí. Si su plugin vive en `addons/`, decidir en ese ticket si se versiona |
+| Aprobada | gdUnit4 6.2.0 (addon versionado en el repo) | Godot no trae test runner propio. Instalado desde Asset Store y activado; se versiona en `addons/gdUnit4/` |
+| Instalada por el usuario | Godot Editor MCP (servidor `godot-mcp` 2026.10.20, addon 2026.10.20) | Puente con el editor. Se versiona en `addons/godot_mcp/` (decisión del ticket 000.1). Toolsets aprobados: `core` e `inspection`, ambos de solo lectura; no se activan toolsets mutantes sin aprobación |
 | Fase 2 | GitHub Actions | Solo cuando ya existan pruebas; no bloquea el arranque |
 | Descartada por ahora | Blender, Krita, Audacity | Modelos con primitivas + shader de flat shading, UI con nodos `Control`, audio con placeholders |
 
@@ -88,6 +89,7 @@ No agregar addons, plugins ni dependencias sin ticket.
   - crear acciones en el Mapa de entrada;
   - nombrar capas de colisión y asignar `collision_layer` / `collision_mask`;
   - agregar un Autoload;
+  - cambiar el renderer, la metadata de versión o los plugins activos de `project.godot` (siempre desde el editor, nunca editando el archivo);
   - armar la estructura de nodos de una escena.
 - Solo se toca lo listado en **"Archivos a tocar"** del ticket. Lo de **"No tocar"** es intocable.
 
@@ -136,9 +138,9 @@ Un ticket **no se cierra** sin verificar. Comandos (a automatizar en `tools/veri
 & $env:GODOT_BIN --headless --path . --quit-after 60
 
 # 4. Pruebas unitarias (este comando EJECUTA los tests, no instala nada).
-#    gdUnit4 se instala desde AssetLib en el editor y se activa en Project Settings -> Plugins.
-#    Confirmar la sintaxis exacta en su documentación.
-& $env:GODOT_BIN --headless --path . -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd --run-tests
+#    gdUnit4 6.2.0 corre todos los tests por defecto; --run-tests ya no existe.
+#    En headless requiere --ignoreHeadlessMode.
+& $env:GODOT_BIN --headless --path . -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd --ignoreHeadlessMode
 ```
 
 - Los tests automáticos cubren **lógica pura**. No depender de render ni de input en modo headless (es lento y poco confiable sin GPU).
@@ -172,7 +174,7 @@ Un ticket **no se cierra** sin verificar. Comandos (a automatizar en `tools/veri
 
 Los tickets viven en Notion (vía MCP). **Nunca trabajar sin ticket.**
 
-El TICKET 000 de **ESPORA.io** es esta página: `URL_TICKET_000_ESPORA` (el usuario la completa). En Notion puede haber otros TICKET 000 de otros proyectos: **no leerlos ni modificarlos**.
+El TICKET 000 de **ESPORA.io** es esta página: https://app.notion.com/p/TICKET-000-ESPORA-io-400fd5d7f03f80fba1e5eeca7d4f1f40 En Notion puede haber otros TICKET 000 de otros proyectos: **no leerlos ni modificarlos**.
 
 ### Abrir un ticket
 1. Página hija del **TICKET 000**, numerada `000.X` (o `000.X.Y` si se subdivide).

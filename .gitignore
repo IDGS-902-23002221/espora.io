@@ -3,9 +3,6 @@
 export_credentials.cfg
 *.translation
 
-# MCP de Godot: pendiente decidir en el ticket 01 si se versiona
-addons/godot_mcp/
-
 # Sistema
 .DS_Store
 Thumbs.db
