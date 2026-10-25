@@ -3,6 +3,9 @@
 export_credentials.cfg
 *.translation
 
+# Tests y reportes
+reports/
+
 # Sistema
 .DS_Store
 Thumbs.db
