@@ -103,6 +103,7 @@ No agregar addons, plugins ni dependencias sin ticket.
 - Comunicación entre nodos por **señales**; evitar rutas `get_node("../../X")` frágiles. Referencias con `@onready` o `@export`.
 - **Composición sobre herencia:** componentes pequeños reutilizables (por ejemplo salud o crecimiento) en vez de una clase gigante por entidad.
 - **Autoload `GameManager`** solo para estado global (estado de partida, puntaje). Nada más.
+- **`GameConfig` no es autoload:** es un `class_name` con solo constantes; se accede como `GameConfig.NOMBRE` y nunca se editan valores dentro de la lógica.
 - **Cero números mágicos:** todo valor de balance vive en `GameConfig`. Los valores iniciales están en `docs/balance-propuesta.md` y son provisionales; si un valor cambia, se cambia en `GameConfig` y en ese documento, nunca en la lógica.
 - **Separar lógica de nodos:** reglas puras (regla de tamaño, contador de impactos, expiración de esporas, crecimiento) en scripts testeables sin depender del árbol de escena.
 - Comentarios solo donde el "por qué" no es obvio. Sin código muerto ni `print` de depuración olvidados.
@@ -139,8 +140,8 @@ Un ticket **no se cierra** sin verificar. Comandos (a automatizar en `tools/veri
 
 # 4. Pruebas unitarias (este comando EJECUTA los tests, no instala nada).
 #    gdUnit4 6.2.0 corre todos los tests por defecto; --run-tests ya no existe.
-#    En headless requiere --ignoreHeadlessMode.
-& $env:GODOT_BIN --headless --path . -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd --ignoreHeadlessMode
+#    En headless requiere --ignoreHeadlessMode y -a <ruta> para descubrir los tests.
+& $env:GODOT_BIN --headless --path . -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd --ignoreHeadlessMode -a res://tests
 ```
 
 - Los tests automáticos cubren **lógica pura**. No depender de render ni de input en modo headless (es lento y poco confiable sin GPU).

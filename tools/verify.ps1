@@ -54,9 +54,47 @@ if ([string]::IsNullOrWhiteSpace($mainScene)) {
 
 Write-Host ""
 Write-Host "== 4/4 gdUnit4 =="
-& $env:GODOT_BIN --headless --path . -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd --ignoreHeadlessMode
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "FALLO: gdUnit4 (exit $LASTEXITCODE)" -ForegroundColor Red
+$gdunitLog = Join-Path $env:TEMP "espora_gdunit_verify.log"
+& $env:GODOT_BIN --headless --path . -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd --ignoreHeadlessMode -a res://tests *> $gdunitLog
+$gdunitExit = $LASTEXITCODE
+if (Test-Path $gdunitLog) {
+    Get-Content $gdunitLog | ForEach-Object { Write-Host $_ }
+}
+$gdunitText = ""
+if (Test-Path $gdunitLog) {
+    $gdunitText = Get-Content $gdunitLog -Raw
+}
+
+if ($gdunitText -match "No test cases found") {
+    Write-Host "FALLO: gdUnit4 no encontro ningun test" -ForegroundColor Red
+    $failures++
+} else {
+    $summaryMatches = [regex]::Matches($gdunitText, '(\d+) test cases \| (\d+) errors \| (\d+) failures \| (\d+) flaky \| (\d+) skipped')
+    if ($summaryMatches.Count -eq 0) {
+        Write-Host "FALLO: no se pudo leer el resumen de gdUnit4" -ForegroundColor Red
+        $failures++
+    } else {
+        $summary = $summaryMatches[$summaryMatches.Count - 1]
+        $totalTests = [int]$summary.Groups[1].Value
+        $testErrors = [int]$summary.Groups[2].Value
+        $testFailures = [int]$summary.Groups[3].Value
+        $testSkipped = [int]$summary.Groups[5].Value
+        $testPassed = $totalTests - $testErrors - $testFailures - $testSkipped
+        Write-Host ("  Tests: {0} | pasaron: {1} | errores: {2} | fallos: {3} | omitidos: {4}" -f `
+            $totalTests, $testPassed, $testErrors, $testFailures, $testSkipped)
+        if ($totalTests -eq 0) {
+            Write-Host "FALLO: gdUnit4 corrio 0 tests" -ForegroundColor Red
+            $failures++
+        }
+        if ($testErrors -gt 0 -or $testFailures -gt 0) {
+            Write-Host "FALLO: hay errores o fallos en los tests" -ForegroundColor Red
+            $failures++
+        }
+    }
+}
+
+if ($gdunitExit -ne 0) {
+    Write-Host "FALLO: gdUnit4 (exit $gdunitExit)" -ForegroundColor Red
     $failures++
 }
 
