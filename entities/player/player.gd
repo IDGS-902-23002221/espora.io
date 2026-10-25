@@ -1,0 +1,43 @@
+extends CharacterBody3D
+
+@export var camara: Camera3D
+
+var _gravedad: float = ProjectSettings.get_setting("physics/3d/default_gravity", 9.8)
+
+func _physics_process(delta: float) -> void:
+	if is_on_floor():
+		velocity.y = 0.0
+	else:
+		velocity.y -= _gravedad * delta
+
+	var entrada: Vector2 = Input.get_vector(
+		"mover_izquierda", "mover_derecha", "mover_adelante", "mover_atras"
+	)
+	var direccion: Vector3 = _direccion_relativa_a_camara(entrada)
+	velocity.x = direccion.x * GameConfig.VELOCIDAD_BASE_JUGADOR
+	velocity.z = direccion.z * GameConfig.VELOCIDAD_BASE_JUGADOR
+
+	move_and_slide()
+	_mantener_en_arena()
+
+func _direccion_relativa_a_camara(entrada: Vector2) -> Vector3:
+	if camara == null or entrada.length_squared() == 0.0:
+		return Vector3.ZERO
+
+	var base: Basis = camara.global_basis
+	var adelante: Vector3 = -base.z
+	adelante.y = 0.0
+	adelante = adelante.normalized()
+
+	var derecha: Vector3 = base.x
+	derecha.y = 0.0
+	derecha = derecha.normalized()
+
+	return (derecha * entrada.x + adelante * -entrada.y).normalized()
+
+func _mantener_en_arena() -> void:
+	var plano: Vector2 = Vector2(global_position.x, global_position.z)
+	if plano.length() > GameConfig.RADIO_MAPA:
+		plano = plano.normalized() * GameConfig.RADIO_MAPA
+		global_position.x = plano.x
+		global_position.z = plano.y

@@ -1,0 +1,46 @@
+[gd_scene format=3 uid="uid://0vkrbe02qs03"]
+
+[ext_resource type="Script" uid="uid://ctjwa8qcobp84" path="res://entities/player/player.gd" id="1_abrql"]
+[ext_resource type="Script" uid="uid://dp1lenxi4k50x" path="res://entities/player/camera_orbit.gd" id="2_sglur"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_a1egs"]
+radius = 0.45
+height = 1.6
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_a1egs"]
+custom_aabb = AABB(0, 0.5, 0, 0, 0, 0)
+top_radius = 0.3
+height = 1.0
+radial_segments = 8
+
+[sub_resource type="SphereMesh" id="SphereMesh_a1egs"]
+custom_aabb = AABB(0, 1.1, 0, 0, 0, 0)
+radius = 0.6
+height = 0.8
+radial_segments = 8
+rings = 4
+
+[node name="Jugador" type="CharacterBody3D" unique_id=2016039957 node_paths=PackedStringArray("camara")]
+collision_mask = 4
+script = ExtResource("1_abrql")
+camara = NodePath("SpringArm3D/Camera3D")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1361798916]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("CapsuleShape3D_a1egs")
+
+[node name="Visual" type="Node3D" parent="." unique_id=513545772]
+
+[node name="Cuerpo" type="MeshInstance3D" parent="Visual" unique_id=1418715477]
+mesh = SubResource("CylinderMesh_a1egs")
+
+[node name="Sombrero" type="MeshInstance3D" parent="Visual" unique_id=1401397079]
+mesh = SubResource("SphereMesh_a1egs")
+
+[node name="SpringArm3D" type="SpringArm3D" parent="." unique_id=1598648499]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 0, 0)
+collision_mask = 4
+spring_length = 8.0
+script = ExtResource("2_sglur")
+
+[node name="Camera3D" type="Camera3D" parent="SpringArm3D" unique_id=1539115652]
