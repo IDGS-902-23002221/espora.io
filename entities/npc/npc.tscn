@@ -1,0 +1,47 @@
+[gd_scene format=3 uid="uid://oif0hsvl8ssy"]
+
+[ext_resource type="Script" uid="uid://df71o4c2kk86c" path="res://entities/npc/npc.gd" id="1_gwous"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_a1egs"]
+height = 1.6
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_a1egs"]
+top_radius = 0.3
+height = 1.0
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a1egs"]
+albedo_color = Color(0.8862745, 0, 0.21568628, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_a1egs"]
+material = SubResource("StandardMaterial3D_a1egs")
+radius = 0.6
+height = 0.8
+radial_segments = 8
+rings = 4
+
+[node name="Npc" type="CharacterBody3D" unique_id=1664018912 node_paths=PackedStringArray("etiqueta_estado")]
+collision_layer = 2
+collision_mask = 4
+script = ExtResource("1_gwous")
+etiqueta_estado = NodePath("Label3D")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=801646029]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("CapsuleShape3D_a1egs")
+
+[node name="Visual" type="Node3D" parent="." unique_id=35599428]
+
+[node name="Cuerpo" type="MeshInstance3D" parent="Visual" unique_id=219737525]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("CylinderMesh_a1egs")
+
+[node name="Sombrero" type="MeshInstance3D" parent="Visual" unique_id=449583128]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+mesh = SubResource("SphereMesh_a1egs")
+
+[node name="Label3D" type="Label3D" parent="." unique_id=149646397]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.5, 0)
+billboard = 1
+text = "NEUTRAL
+"
