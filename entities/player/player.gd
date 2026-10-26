@@ -2,7 +2,14 @@ extends CharacterBody3D
 
 @export var camara: Camera3D
 
+var tamanio: float = GameConfig.TAMANIO_INICIAL
 var _gravedad: float = ProjectSettings.get_setting("physics/3d/default_gravity", 9.8)
+
+@onready var _visual: Node3D = $Visual
+@onready var _colision: CollisionShape3D = $CollisionShape3D
+
+func _ready() -> void:
+	_aplicar_tamanio()
 
 func _physics_process(delta: float) -> void:
 	if is_on_floor():
@@ -14,11 +21,23 @@ func _physics_process(delta: float) -> void:
 		"mover_izquierda", "mover_derecha", "mover_adelante", "mover_atras"
 	)
 	var direccion: Vector3 = _direccion_relativa_a_camara(entrada)
-	velocity.x = direccion.x * GameConfig.VELOCIDAD_BASE_JUGADOR
-	velocity.z = direccion.z * GameConfig.VELOCIDAD_BASE_JUGADOR
+	var velocidad: float = Crecimiento.velocidad_por_tamanio(tamanio, GameConfig.VELOCIDAD_BASE_JUGADOR)
+	velocity.x = direccion.x * velocidad
+	velocity.z = direccion.z * velocidad
 
 	move_and_slide()
 	_mantener_en_arena()
+
+func consumir_nutriente() -> void:
+	tamanio = Crecimiento.crecer(tamanio)
+	_aplicar_tamanio()
+
+func _aplicar_tamanio() -> void:
+	if _visual != null:
+		_visual.scale = Vector3.ONE * tamanio
+	if _colision != null:
+		_colision.scale = Vector3.ONE * tamanio
+		_colision.position = Vector3(0.0, 0.8 * tamanio, 0.0)
 
 func _direccion_relativa_a_camara(entrada: Vector2) -> Vector3:
 	if camara == null or entrada.length_squared() == 0.0:

@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://b226bxfysqw8n"]
+
+[ext_resource type="Script" uid="uid://dy28jopexn2i0" path="res://entities/nutrient/nutrient.gd" id="1_poy5k"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_a1egs"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ci8fk"]
+albedo_color = Color(0.015686275, 1, 1, 1)
+emission_enabled = true
+
+[sub_resource type="SphereMesh" id="SphereMesh_qe07f"]
+radius = 0.25
+height = 0.5
+radial_segments = 6
+rings = 3
+
+[node name="AreaNutriente" type="Area3D" unique_id=1287621599]
+collision_layer = 8
+monitorable = false
+script = ExtResource("1_poy5k")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1297072301]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+shape = SubResource("SphereShape3D_a1egs")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=742863000]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+material_override = SubResource("StandardMaterial3D_ci8fk")
+mesh = SubResource("SphereMesh_qe07f")
