@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://0vkrbe02qs03"]
 
 [ext_resource type="Script" uid="uid://ctjwa8qcobp84" path="res://entities/player/player.gd" id="1_abrql"]
+[ext_resource type="PackedScene" uid="uid://davars1t48klf" path="res://entities/spore/spore.tscn" id="2_bls4j"]
 [ext_resource type="Script" uid="uid://dp1lenxi4k50x" path="res://entities/player/camera_orbit.gd" id="2_sglur"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_a1egs"]
@@ -18,10 +19,12 @@ height = 0.8
 radial_segments = 8
 rings = 4
 
-[node name="Jugador" type="CharacterBody3D" unique_id=2016039957 node_paths=PackedStringArray("camara")]
+[node name="Jugador" type="CharacterBody3D" unique_id=2016039957 node_paths=PackedStringArray("camara", "punto_disparo")]
 collision_mask = 4
 script = ExtResource("1_abrql")
 camara = NodePath("SpringArm3D/Camera3D")
+escena_espora = ExtResource("2_bls4j")
+punto_disparo = NodePath("PuntoDisparo")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1361798916]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
@@ -44,3 +47,6 @@ spring_length = 8.0
 script = ExtResource("2_sglur")
 
 [node name="Camera3D" type="Camera3D" parent="SpringArm3D" unique_id=1539115652]
+
+[node name="PuntoDisparo" type="Node3D" parent="." unique_id=1682505544]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, -1.2)

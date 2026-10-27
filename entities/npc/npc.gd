@@ -8,6 +8,8 @@ extends CharacterBody3D
 @export var margen_borde: float = 2.0
 
 var tamanio: float = 1.0
+# Puntos de dano propios; se vacian con impactos de esporas validos.
+var _puntos_dano: PuntosDano = PuntosDano.new()
 var _estado: int = ReglaTamanio.EstadoTamanio.NEUTRAL
 var _tiempo_estado: float = 0.0
 var _tiempo_deambular: float = 0.0
@@ -20,6 +22,8 @@ var _gravedad: float = ProjectSettings.get_setting("physics/3d/default_gravity",
 func _ready() -> void:
 	tamanio = tamanio_inicial
 	_aplicar_tamanio()
+	# La etiqueta se refresca sola cuando cambian los puntos (impacto o regeneracion).
+	_puntos_dano.puntos_cambiados.connect(_on_puntos_cambiados)
 	_actualizar_etiqueta()
 	_elegir_direccion_deambular()
 
@@ -29,6 +33,8 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.y -= _gravedad * delta
 
+	# La regeneracion (4 s por punto) corre en el NPC, no en el proyectil.
+	_puntos_dano.avanzar_tiempo(delta)
 	_actualizar_estado(delta)
 	var direccion: Vector3 = _direccion_actual(delta)
 	var velocidad_base: float = float(GameConfig.HORDAS[0]["velocidad_npc"])
@@ -135,16 +141,36 @@ func _aplicar_tamanio() -> void:
 		_colision.scale = Vector3.ONE * tamanio
 		_colision.position = Vector3(0.0, 0.8 * tamanio, 0.0)
 
+# Un impacto solo cuenta si el atacante supera el umbral de ataque de entrada.
+@warning_ignore("unused_parameter")
+func recibir_impacto(tamanio_atacante: float, atacante: Node3D) -> void:
+	if not impacto_cuenta(tamanio_atacante, tamanio):
+		return
+	# Delegar en PuntosDano mantiene la regla de 3 impactos y la regeneracion.
+	_puntos_dano.recibir_impacto()
+
+# Regla pura duplicada del umbral para poder testearla sin nodo.
+static func impacto_cuenta(tamanio_atacante: float, tamanio_objetivo: float) -> bool:
+	return ReglaTamanio.proporcion(tamanio_atacante, tamanio_objetivo) >= GameConfig.UMBRAL_ATAQUE_ENTRADA
+
+func _on_puntos_cambiados(_restantes: int) -> void:
+	_actualizar_etiqueta()
+
 func _actualizar_etiqueta() -> void:
 	if etiqueta_estado == null:
 		return
 	etiqueta_estado.visible = mostrar_estado
 	if not mostrar_estado:
 		return
+	var estado_texto: String
 	match _estado:
 		ReglaTamanio.EstadoTamanio.PERSEGUIR:
-			etiqueta_estado.text = "PERSEGUIR"
+			estado_texto = "PERSEGUIR"
 		ReglaTamanio.EstadoTamanio.HUIR:
-			etiqueta_estado.text = "HUIR"
+			estado_texto = "HUIR"
 		_:
-			etiqueta_estado.text = "NEUTRAL"
+			estado_texto = "NEUTRAL"
+	# Incluye los puntos restantes para depuracion (la absorcion llega en 000.9).
+	etiqueta_estado.text = "%s  %d/%d" % [
+		estado_texto, _puntos_dano.puntos, GameConfig.IMPACTOS_PARA_ABSORBER
+	]

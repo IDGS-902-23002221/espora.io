@@ -1,9 +1,15 @@
 extends CharacterBody3D
 
+const EsporaScript = preload("res://entities/spore/spore.gd")
+
 @export var camara: Camera3D
+# Escena de la espora y punto frontal desde donde sale el disparo.
+@export var escena_espora: PackedScene
+@export var punto_disparo: Node3D
 
 var tamanio: float = GameConfig.TAMANIO_INICIAL
 var _gravedad: float = ProjectSettings.get_setting("physics/3d/default_gravity", 9.8)
+var _tiempo_cooldown: float = 0.0
 
 @onready var _visual: Node3D = $Visual
 @onready var _colision: CollisionShape3D = $CollisionShape3D
@@ -27,6 +33,46 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	_mantener_en_arena()
+	_actualizar_disparo(delta)
+
+func _actualizar_disparo(delta: float) -> void:
+	if _tiempo_cooldown > 0.0:
+		_tiempo_cooldown = maxf(0.0, _tiempo_cooldown - delta)
+	# Mantener el boton dispara en automatico, pero nunca mas rapido que el cooldown.
+	if Input.is_action_pressed("disparar") and _tiempo_cooldown <= 0.0:
+		disparar()
+
+func disparar() -> void:
+	if escena_espora == null or punto_disparo == null or camara == null:
+		return
+	var direccion: Vector3 = direccion_disparo_horizontal(camara.global_basis)
+	if direccion == Vector3.ZERO:
+		return
+	var escena: Node = get_tree().current_scene
+	if escena == null:
+		return
+
+	var espora: Node3D = escena_espora.instantiate() as Node3D
+	if espora == null:
+		return
+	# Primero entra al arbol para poder ubicarla en coordenadas globales.
+	escena.add_child(espora)
+	espora.global_position = _origen_disparo(direccion)
+	if espora.has_method("configurar"):
+		espora.configurar(direccion, tamanio, self)
+	_tiempo_cooldown = GameConfig.COOLDOWN_DISPARO_JUGADOR
+
+# Gira el punto frontal segun el yaw de la camara, manteniendo su altura.
+func _origen_disparo(direccion: Vector3) -> Vector3:
+	var base: Vector3 = punto_disparo.global_position
+	var distancia: float = Vector2(
+		base.x - global_position.x, base.z - global_position.z
+	).length()
+	return Vector3(global_position.x, base.y, global_position.z) + direccion * distancia
+
+# Yaw de la camara proyectado al plano XZ; el pitch no afecta el disparo.
+static func direccion_disparo_horizontal(base_camara: Basis) -> Vector3:
+	return EsporaScript.direccion_horizontal(-base_camara.z)
 
 func consumir_nutriente() -> void:
 	tamanio = Crecimiento.crecer(tamanio)

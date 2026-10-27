@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://davars1t48klf"]
+
+[ext_resource type="Script" uid="uid://dln5hqgefrtut" path="res://entities/spore/spore.gd" id="1_kbwdh"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_txqqa"]
+radius = 0.25
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ewnr8"]
+albedo_color = Color(1, 0.105882354, 0.8, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_afn32"]
+material = SubResource("StandardMaterial3D_ewnr8")
+radius = 0.2
+height = 0.4
+radial_segments = 6
+rings = 3
+
+[node name="Espora" type="Area3D" unique_id=1464443967]
+collision_layer = 16
+collision_mask = 2
+monitorable = false
+script = ExtResource("1_kbwdh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=621704290]
+shape = SubResource("SphereShape3D_txqqa")
+
+[node name="Malla" type="MeshInstance3D" parent="." unique_id=1658805450]
+mesh = SubResource("SphereMesh_afn32")
