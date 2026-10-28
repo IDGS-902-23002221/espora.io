@@ -1,0 +1,27 @@
+[gd_scene format=3 uid="uid://es2xigt24y1y"]
+
+[ext_resource type="Script" uid="uid://0p2i5vqrucxx" path="res://ui/hud.gd" id="1_rbyyf"]
+
+[node name="HUD" type="CanvasLayer" unique_id=1258555711 node_paths=PackedStringArray("punto_1", "punto_2", "punto_3")]
+script = ExtResource("1_rbyyf")
+punto_1 = NodePath("Punto1")
+punto_2 = NodePath("Punto2")
+punto_3 = NodePath("Punto3")
+
+[node name="Punto1" type="ColorRect" parent="." unique_id=778857246]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 56.0
+offset_bottom = 56.0
+
+[node name="Punto2" type="ColorRect" parent="." unique_id=1145917783]
+offset_left = 68.0
+offset_top = 16.0
+offset_right = 108.0
+offset_bottom = 56.0
+
+[node name="Punto3" type="ColorRect" parent="." unique_id=2035392978]
+offset_left = 120.0
+offset_top = 16.0
+offset_right = 160.0
+offset_bottom = 56.0

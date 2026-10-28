@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://dx6rah1iyrqvr" path="res://world/nutrient_spawner.gd" id="2_24q8b"]
 [ext_resource type="PackedScene" uid="uid://b226bxfysqw8n" path="res://entities/nutrient/nutrient.tscn" id="3_bgabe"]
 [ext_resource type="PackedScene" uid="uid://oif0hsvl8ssy" path="res://entities/npc/npc.tscn" id="4_xryg2"]
+[ext_resource type="PackedScene" uid="uid://es2xigt24y1y" path="res://ui/hud.tscn" id="5_4ecn2"]
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_a1egs"]
 height = 1.0
@@ -52,3 +53,6 @@ mostrar_estado = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, -25)
 jugador = NodePath("../Jugador")
 mostrar_estado = true
+
+[node name="HUD" parent="." unique_id=1258555711 node_paths=PackedStringArray("jugador") instance=ExtResource("5_4ecn2")]
+jugador = NodePath("../Jugador")

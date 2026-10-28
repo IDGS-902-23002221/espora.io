@@ -1,6 +1,12 @@
 extends CharacterBody3D
 
 const EsporaScript = preload("res://entities/spore/spore.gd")
+# Atacante simulado del debug: el doble supera siempre el umbral de 1.10
+# y 2.0 es exacto en binario, sin errores de redondeo.
+const MULT_ATACANTE_DEBUG: float = 2.0
+
+signal puntos_cambiados(restantes: int)
+signal absorbido
 
 @export var camara: Camera3D
 # Escena de la espora y punto frontal desde donde sale el disparo.
@@ -10,14 +16,22 @@ const EsporaScript = preload("res://entities/spore/spore.gd")
 var tamanio: float = GameConfig.TAMANIO_INICIAL
 var _gravedad: float = ProjectSettings.get_setting("physics/3d/default_gravity", 9.8)
 var _tiempo_cooldown: float = 0.0
+# Puntos de dano del jugador; el HUD los dibuja.
+var _puntos_dano: PuntosDano = PuntosDano.new()
 
 @onready var _visual: Node3D = $Visual
 @onready var _colision: CollisionShape3D = $CollisionShape3D
 
 func _ready() -> void:
 	_aplicar_tamanio()
+	_puntos_dano.puntos_cambiados.connect(_on_puntos_cambiados)
+	_puntos_dano.absorbido.connect(_on_absorbido)
 
 func _physics_process(delta: float) -> void:
+	# La regeneracion de puntos corre en el jugador, igual que en los NPC.
+	_puntos_dano.avanzar_tiempo(delta)
+	_actualizar_debug()
+
 	if is_on_floor():
 		velocity.y = 0.0
 	else:
@@ -77,6 +91,36 @@ static func direccion_disparo_horizontal(base_camara: Basis) -> Vector3:
 func consumir_nutriente() -> void:
 	tamanio = Crecimiento.crecer(tamanio)
 	_aplicar_tamanio()
+
+# Lo llama el NPC absorbido a traves de la referencia que guardo la espora.
+func absorber(tamanio_absorbido: float) -> void:
+	tamanio = Absorcion.crecimiento_por_absorcion(tamanio, tamanio_absorbido)
+	_aplicar_tamanio()
+
+func puntos_actuales() -> int:
+	return _puntos_dano.puntos
+
+# Mismo umbral que el NPC. Reusa la proporcion de ReglaTamanio, ya existente.
+@warning_ignore("unused_parameter")
+func recibir_impacto(tamanio_atacante: float, atacante: Node3D) -> void:
+	if ReglaTamanio.proporcion(tamanio_atacante, tamanio) < GameConfig.UMBRAL_ATAQUE_ENTRADA:
+		return
+	_puntos_dano.recibir_impacto()
+
+# Solo en builds de depuracion: simula un impacto para probar el HUD.
+func _actualizar_debug() -> void:
+	if not OS.is_debug_build():
+		return
+	if not Input.is_action_just_pressed("debug_impacto"):
+		return
+	# Atacante simulado grande: cuenta sin tocar ningun valor de balance.
+	recibir_impacto(tamanio * MULT_ATACANTE_DEBUG, null)
+
+func _on_puntos_cambiados(restantes: int) -> void:
+	puntos_cambiados.emit(restantes)
+
+func _on_absorbido() -> void:
+	absorbido.emit()
 
 func _aplicar_tamanio() -> void:
 	if _visual != null:

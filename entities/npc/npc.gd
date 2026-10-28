@@ -7,6 +7,9 @@ extends CharacterBody3D
 @export var intervalo_deambular: float = 2.0
 @export var margen_borde: float = 2.0
 
+# Misma altura que usan los NPC colocados en la arena.
+const ALTURA_REAPARICION: float = 0.1
+
 var tamanio: float = 1.0
 # Puntos de dano propios; se vacian con impactos de esporas validos.
 var _puntos_dano: PuntosDano = PuntosDano.new()
@@ -15,6 +18,10 @@ var _tiempo_estado: float = 0.0
 var _tiempo_deambular: float = 0.0
 var _direccion_deambular: Vector3 = Vector3.FORWARD
 var _gravedad: float = ProjectSettings.get_setting("physics/3d/default_gravity", 9.8)
+# Ultimo atacante valido: lo usa la absorcion para hacer crecer al que disparo.
+var _atacante_ultimo: Node3D
+var _en_cooldown: bool = false
+var _tiempo_cooldown: float = 0.0
 
 @onready var _visual: Node3D = $Visual
 @onready var _colision: CollisionShape3D = $CollisionShape3D
@@ -24,10 +31,17 @@ func _ready() -> void:
 	_aplicar_tamanio()
 	# La etiqueta se refresca sola cuando cambian los puntos (impacto o regeneracion).
 	_puntos_dano.puntos_cambiados.connect(_on_puntos_cambiados)
+	# Al vaciarse los 3 puntos, el NPC absorbe/respawnea.
+	_puntos_dano.absorbido.connect(_on_absorbido)
 	_actualizar_etiqueta()
 	_elegir_direccion_deambular()
 
 func _physics_process(delta: float) -> void:
+	# Durante el cooldown queda oculto, congelado e intocable.
+	if _en_cooldown:
+		_avanzar_cooldown(delta)
+		return
+
 	if is_on_floor():
 		velocity.y = 0.0
 	else:
@@ -144,8 +158,12 @@ func _aplicar_tamanio() -> void:
 # Un impacto solo cuenta si el atacante supera el umbral de ataque de entrada.
 @warning_ignore("unused_parameter")
 func recibir_impacto(tamanio_atacante: float, atacante: Node3D) -> void:
+	if _en_cooldown:
+		return
 	if not impacto_cuenta(tamanio_atacante, tamanio):
 		return
+	# Guardar al atacante: al llegar a 0 puntos se lo usa para absorber.
+	_atacante_ultimo = atacante
 	# Delegar en PuntosDano mantiene la regla de 3 impactos y la regeneracion.
 	_puntos_dano.recibir_impacto()
 
@@ -170,7 +188,58 @@ func _actualizar_etiqueta() -> void:
 			estado_texto = "HUIR"
 		_:
 			estado_texto = "NEUTRAL"
-	# Incluye los puntos restantes para depuracion (la absorcion llega en 000.9).
+	# Incluye los puntos restantes para depuracion.
 	etiqueta_estado.text = "%s  %d/%d" % [
 		estado_texto, _puntos_dano.puntos, GameConfig.IMPACTOS_PARA_ABSORBER
 	]
+
+# Diferido: el impacto llega desde el Area de la espora; movemos al NPC fuera de ese callback.
+func _on_absorbido() -> void:
+	_absorber_y_reaparecer.call_deferred()
+
+func _absorber_y_reaparecer() -> void:
+	var tamanio_absorbido: float = tamanio
+	# El atacante crece usando el tamano que tenia este NPC al ser absorbido.
+	if _atacante_ultimo != null and _atacante_ultimo.has_method("absorber"):
+		_atacante_ultimo.absorber(tamanio_absorbido)
+	_atacante_ultimo = null
+
+	# Reaparece mas chico, con los puntos llenos y en otro punto de la arena.
+	tamanio = Absorcion.tamanio_reaparicion(tamanio_absorbido)
+	_aplicar_tamanio()
+	_puntos_dano.reiniciar()
+	_estado = ReglaTamanio.EstadoTamanio.NEUTRAL
+	_tiempo_estado = 0.0
+	_elegir_direccion_deambular()
+	_reubicar_en_arena()
+	_iniciar_cooldown()
+
+func _reubicar_en_arena() -> void:
+	# Misma distribucion uniforme que world/nutrient_spawner.gd. Se copia el
+	# calculo porque el spawner no lo expone y esta fuera del alcance del ticket.
+	var angulo: float = randf() * TAU
+	var radio: float = GameConfig.RADIO_MAPA * sqrt(randf())
+	global_position = Vector3(cos(angulo) * radio, ALTURA_REAPARICION, sin(angulo) * radio)
+
+func _iniciar_cooldown() -> void:
+	_en_cooldown = true
+	_tiempo_cooldown = GameConfig.COOLDOWN_REAPARICION_NPC
+	velocity = Vector3.ZERO
+	_visual.visible = false
+	if etiqueta_estado != null:
+		etiqueta_estado.visible = false
+	# Diferido: seguimos dentro del callback del Area de la espora.
+	_colision.set_deferred("disabled", true)
+
+func _avanzar_cooldown(delta: float) -> void:
+	_tiempo_cooldown -= delta
+	if _tiempo_cooldown > 0.0:
+		return
+	_en_cooldown = false
+	_reactivar()
+
+func _reactivar() -> void:
+	_visual.visible = true
+	_colision.set_deferred("disabled", false)
+	# Respeta mostrar_estado y muestra los puntos ya reseteados.
+	_actualizar_etiqueta()
