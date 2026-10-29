@@ -18,6 +18,10 @@ var _gravedad: float = ProjectSettings.get_setting("physics/3d/default_gravity",
 var _tiempo_cooldown: float = 0.0
 # Puntos de dano del jugador; el HUD los dibuja.
 var _puntos_dano: PuntosDano = PuntosDano.new()
+# Ultimo NPC que acerto un impacto valido: crece cuando nos absorbe.
+var _atacante_ultimo: Node3D
+var _en_reaparicion: bool = false
+var _tiempo_reaparicion: float = 0.0
 
 @onready var _visual: Node3D = $Visual
 @onready var _colision: CollisionShape3D = $CollisionShape3D
@@ -28,6 +32,11 @@ func _ready() -> void:
 	_puntos_dano.absorbido.connect(_on_absorbido)
 
 func _physics_process(delta: float) -> void:
+	# Durante la reaparicion queda oculto e inmovil: solo corre el cooldown.
+	if _en_reaparicion:
+		_avanzar_reaparicion(delta)
+		return
+
 	# La regeneracion de puntos corre en el jugador, igual que en los NPC.
 	_puntos_dano.avanzar_tiempo(delta)
 	_actualizar_debug()
@@ -100,10 +109,11 @@ func puntos_actuales() -> int:
 	return _puntos_dano.puntos
 
 # Mismo umbral que el NPC. Reusa la proporcion de ReglaTamanio, ya existente.
-@warning_ignore("unused_parameter")
 func recibir_impacto(tamanio_atacante: float, atacante: Node3D) -> void:
 	if ReglaTamanio.proporcion(tamanio_atacante, tamanio) < GameConfig.UMBRAL_ATAQUE_ENTRADA:
 		return
+	# Guardar quien nos acerto: al vaciarnos, ese NPC crece.
+	_atacante_ultimo = atacante
 	_puntos_dano.recibir_impacto()
 
 # Solo en builds de depuracion: simula un impacto para probar el HUD.
@@ -120,6 +130,42 @@ func _on_puntos_cambiados(restantes: int) -> void:
 
 func _on_absorbido() -> void:
 	absorbido.emit()
+	# Diferido: el impacto llega desde el Area3D de la espora.
+	_iniciar_reaparicion.call_deferred()
+
+func _iniciar_reaparicion() -> void:
+	# El que nos vacio crece con el tamano que teniamos (regla congelada).
+	if _atacante_ultimo != null and _atacante_ultimo.has_method("absorber"):
+		_atacante_ultimo.absorber(tamanio)
+	_atacante_ultimo = null
+
+	# Reaparece mas chico (con piso) en otro punto y con cooldown.
+	tamanio = Absorcion.tamanio_reaparicion(tamanio)
+	_aplicar_tamanio()
+	_reubicar_en_arena()
+	_en_reaparicion = true
+	_tiempo_reaparicion = GameConfig.COOLDOWN_REAPARICION_JUGADOR
+	_tiempo_cooldown = 0.0
+	velocity = Vector3.ZERO
+	_visual.visible = false
+	# Diferido: seguimos dentro del callback del Area de la espora.
+	_colision.set_deferred("disabled", true)
+
+func _avanzar_reaparicion(delta: float) -> void:
+	_tiempo_reaparicion -= delta
+	if _tiempo_reaparicion > 0.0:
+		return
+	_en_reaparicion = false
+	# Puntos llenos: el HUD vuelve a 3 cian.
+	_puntos_dano.reiniciar()
+	_visual.visible = true
+	_colision.set_deferred("disabled", false)
+
+func _reubicar_en_arena() -> void:
+	# Misma distribucion uniforme que el spawner y el NPC (calculo copiado).
+	var angulo: float = randf() * TAU
+	var radio: float = GameConfig.RADIO_MAPA * sqrt(randf())
+	global_position = Vector3(cos(angulo) * radio, global_position.y, sin(angulo) * radio)
 
 func _aplicar_tamanio() -> void:
 	if _visual != null:

@@ -173,6 +173,11 @@ func recibir_impacto(tamanio_atacante: float, atacante: Node3D) -> void:
 	# Delegar en PuntosDano mantiene la regla de 3 impactos y la regeneracion.
 	_puntos_dano.recibir_impacto()
 
+# Lo llama el jugador absorbido; quien absorbe crece (regla congelada).
+func absorber(tamanio_absorbido: float) -> void:
+	tamanio = Absorcion.crecimiento_por_absorcion(tamanio, tamanio_absorbido)
+	_aplicar_tamanio()
+
 # Regla pura duplicada del umbral para poder testearla sin nodo.
 static func impacto_cuenta(tamanio_atacante: float, tamanio_objetivo: float) -> bool:
 	return ReglaTamanio.proporcion(tamanio_atacante, tamanio_objetivo) >= GameConfig.UMBRAL_ATAQUE_ENTRADA
