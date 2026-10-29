@@ -27,11 +27,17 @@ var _atacante_ultimo: Node3D
 var _en_cooldown: bool = false
 var _tiempo_cooldown: float = 0.0
 var _tiempo_disparo: float = 0.0
+# Config de la horda actual, cacheada por indice para no leerla cada frame.
+var _horda_indice: int = -1
+var _horda_config: Dictionary = {}
+# Autoload por ruta: `--check-only` valida el script sin cargar autoloads.
+var _game_manager: Node
 
 @onready var _visual: Node3D = $Visual
 @onready var _colision: CollisionShape3D = $CollisionShape3D
 
 func _ready() -> void:
+	_game_manager = get_node_or_null("/root/GameManager")
 	tamanio = tamanio_inicial
 	_aplicar_tamanio()
 	# La etiqueta se refresca sola cuando cambian los puntos (impacto o regeneracion).
@@ -57,7 +63,7 @@ func _physics_process(delta: float) -> void:
 	_actualizar_estado(delta)
 	_actualizar_disparo(delta)
 	var direccion: Vector3 = _direccion_actual(delta)
-	var velocidad_base: float = float(GameConfig.HORDAS[0]["velocidad_npc"])
+	var velocidad_base: float = float(_config_horda()["velocidad_npc"])
 	var velocidad: float = Crecimiento.velocidad_por_tamanio(tamanio, velocidad_base)
 	velocity.x = direccion.x * velocidad
 	velocity.z = direccion.z * velocidad
@@ -72,7 +78,7 @@ func _actualizar_estado(delta: float) -> void:
 
 	var tamanio_jugador: float = _tamanio_del_jugador()
 	var proporcion_actual: float = ReglaTamanio.proporcion(tamanio, tamanio_jugador)
-	var radio: float = float(GameConfig.HORDAS[0]["radio_deteccion_npc"])
+	var radio: float = float(_config_horda()["radio_deteccion_npc"])
 	var distancia: float = _distancia_horizontal(jugador.global_position)
 
 	var siguiente: int
@@ -154,6 +160,17 @@ func _elegir_direccion_deambular() -> void:
 	else:
 		_direccion_deambular = _direccion_deambular.normalized()
 
+# Config de la horda actual; se refresca solo cuando cambia el indice.
+func _config_horda() -> Dictionary:
+	if _game_manager == null:
+		# Sin autoload (por ejemplo, check-only): primera horda.
+		return Hordas.configuracion(0)
+	var actual: int = int(_game_manager.get("indice_horda"))
+	if actual != _horda_indice:
+		_horda_indice = actual
+		_horda_config = _game_manager.call("configuracion_horda")
+	return _horda_config
+
 func _aplicar_tamanio() -> void:
 	if _visual != null:
 		_visual.scale = Vector3.ONE * tamanio
@@ -198,7 +215,7 @@ func _actualizar_disparo(delta: float) -> void:
 	# Si no supera el umbral de dano, la espora no contaria: no gastar disparo.
 	if not impacto_cuenta(tamanio, _tamanio_del_jugador()):
 		return
-	var radio: float = float(GameConfig.HORDAS[0]["radio_deteccion_npc"])
+	var radio: float = float(_config_horda()["radio_deteccion_npc"])
 	var distancia: float = _distancia_horizontal(jugador.global_position)
 	if not puede_disparar(_estado, distancia, radio, _tiempo_disparo):
 		return
@@ -221,7 +238,7 @@ func _disparar() -> void:
 	)
 	if espora == null:
 		return
-	_tiempo_disparo = float(GameConfig.HORDAS[0]["cooldown_disparo_npc"])
+	_tiempo_disparo = float(_config_horda()["cooldown_disparo_npc"])
 
 func _on_puntos_cambiados(_restantes: int) -> void:
 	_actualizar_etiqueta()

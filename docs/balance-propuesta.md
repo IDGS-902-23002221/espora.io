@@ -118,6 +118,8 @@ La noche se divide en **5 hordas de 90 s**, con 5 s de pausa entre una y otra (5
 
 Las hordas escalan **parámetros**, no reglas: la regla de tamaño no cambia nunca.
 
+La pausa entre hordas es `PAUSA_ENTRE_HORDAS` = 5.0 s (constante en `GameConfig`).
+
 ---
 
 ## 7. Cómo se calibra

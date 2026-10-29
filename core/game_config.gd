@@ -46,6 +46,8 @@ const INTERVALO_ESPORA_VELOZ_MAX: float = 60.0
 const NPC_MAX_ABSOLUTO: int = 24
 
 # Hordas: solo datos, sin logica.
+# Pausa entre hordas, en segundos (valor de balance).
+const PAUSA_ENTRE_HORDAS: float = 5.0
 const HORDAS: Array[Dictionary] = [
 	{
 		"duracion": 90.0,
