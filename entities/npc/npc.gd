@@ -1,5 +1,9 @@
 extends CharacterBody3D
 
+const EsporaScript = preload("res://entities/spore/spore.gd")
+# Precargada: evita un @export manual que pueda quedar en null.
+const EscenaEspora: PackedScene = preload("res://entities/spore/spore.tscn")
+
 @export var jugador: Node3D
 @export var tamanio_inicial: float = 1.0
 @export var mostrar_estado: bool = false
@@ -22,6 +26,7 @@ var _gravedad: float = ProjectSettings.get_setting("physics/3d/default_gravity",
 var _atacante_ultimo: Node3D
 var _en_cooldown: bool = false
 var _tiempo_cooldown: float = 0.0
+var _tiempo_disparo: float = 0.0
 
 @onready var _visual: Node3D = $Visual
 @onready var _colision: CollisionShape3D = $CollisionShape3D
@@ -50,6 +55,7 @@ func _physics_process(delta: float) -> void:
 	# La regeneracion (4 s por punto) corre en el NPC, no en el proyectil.
 	_puntos_dano.avanzar_tiempo(delta)
 	_actualizar_estado(delta)
+	_actualizar_disparo(delta)
 	var direccion: Vector3 = _direccion_actual(delta)
 	var velocidad_base: float = float(GameConfig.HORDAS[0]["velocidad_npc"])
 	var velocidad: float = Crecimiento.velocidad_por_tamanio(tamanio, velocidad_base)
@@ -170,6 +176,47 @@ func recibir_impacto(tamanio_atacante: float, atacante: Node3D) -> void:
 # Regla pura duplicada del umbral para poder testearla sin nodo.
 static func impacto_cuenta(tamanio_atacante: float, tamanio_objetivo: float) -> bool:
 	return ReglaTamanio.proporcion(tamanio_atacante, tamanio_objetivo) >= GameConfig.UMBRAL_ATAQUE_ENTRADA
+
+# Condiciones puras para disparar: perseguir, dentro del radio y sin cooldown.
+static func puede_disparar(estado: int, distancia: float, radio: float, tiempo_cooldown: float) -> bool:
+	if estado != ReglaTamanio.EstadoTamanio.PERSEGUIR:
+		return false
+	if tiempo_cooldown > 0.0:
+		return false
+	return distancia <= radio
+
+func _actualizar_disparo(delta: float) -> void:
+	if _tiempo_disparo > 0.0:
+		_tiempo_disparo = maxf(0.0, _tiempo_disparo - delta)
+	if jugador == null:
+		return
+	# Si no supera el umbral de dano, la espora no contaria: no gastar disparo.
+	if not impacto_cuenta(tamanio, _tamanio_del_jugador()):
+		return
+	var radio: float = float(GameConfig.HORDAS[0]["radio_deteccion_npc"])
+	var distancia: float = _distancia_horizontal(jugador.global_position)
+	if not puede_disparar(_estado, distancia, radio, _tiempo_disparo):
+		return
+	_disparar()
+
+func _disparar() -> void:
+	if jugador == null:
+		return
+	var direccion: Vector3 = _direccion_desde_jugador()
+	if direccion == Vector3.ZERO:
+		return
+	var escena: Node = get_tree().current_scene
+	if escena == null:
+		return
+	# Centro de la colision: ya escala con el tamano, sin constante nueva.
+	var origen: Vector3 = global_position + Vector3(0.0, _colision.position.y, 0.0)
+	# La espora del NPC solo impacta al jugador (capa 1).
+	var espora: Area3D = EsporaScript.disparar(
+		EscenaEspora, escena, origen, direccion, tamanio, self, EsporaScript.CAPA_JUGADOR
+	)
+	if espora == null:
+		return
+	_tiempo_disparo = float(GameConfig.HORDAS[0]["cooldown_disparo_npc"])
 
 func _on_puntos_cambiados(_restantes: int) -> void:
 	_actualizar_etiqueta()

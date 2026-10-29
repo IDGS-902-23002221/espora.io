@@ -66,14 +66,13 @@ func disparar() -> void:
 	if escena == null:
 		return
 
-	var espora: Node3D = escena_espora.instantiate() as Node3D
+	# La espora del jugador impacta NPCs (capa 2) y nunca al propio jugador.
+	var espora: Area3D = EsporaScript.disparar(
+		escena_espora, escena, _origen_disparo(direccion), direccion,
+		tamanio, self, EsporaScript.CAPA_NPC
+	)
 	if espora == null:
 		return
-	# Primero entra al arbol para poder ubicarla en coordenadas globales.
-	escena.add_child(espora)
-	espora.global_position = _origen_disparo(direccion)
-	if espora.has_method("configurar"):
-		espora.configurar(direccion, tamanio, self)
 	_tiempo_cooldown = GameConfig.COOLDOWN_DISPARO_JUGADOR
 
 # Gira el punto frontal segun el yaw de la camara, manteniendo su altura.

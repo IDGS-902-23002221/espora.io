@@ -1,7 +1,11 @@
 extends Area3D
 
+# Capas de fisica del proyecto (project.godot, layer_names).
+const CAPA_JUGADOR: int = 1
+const CAPA_NPC: int = 2
+
 # Quien disparo la espora y su tamano al salir; lo usa el NPC al impactar
-# y mas adelante 000.9 para la absorcion.
+# y la absorcion al vaciar los puntos.
 var atacante: Node3D
 var tamanio_atacante: float = 0.0
 
@@ -37,6 +41,30 @@ func _on_body_entered(body: Node3D) -> void:
 	_impactado = true
 	body.recibir_impacto(tamanio_atacante, atacante)
 	queue_free()
+
+# Un solo camino para disparar: instanciar, fijar a quien impacta, ubicar y
+# configurar. Lo usan el jugador y el NPC; la mascara evita autogolpe y fuego amigo.
+static func disparar(
+	escena: PackedScene,
+	contenedor: Node,
+	origen: Vector3,
+	direccion: Vector3,
+	tamanio_atacante: float,
+	atacante: Node3D,
+	mascara: int
+) -> Area3D:
+	if escena == null or contenedor == null:
+		return null
+	var espora: Area3D = escena.instantiate() as Area3D
+	if espora == null:
+		return null
+	# Antes de entrar al arbol, para que no detecte cuerpos con la mascara vieja.
+	espora.collision_mask = mascara
+	contenedor.add_child(espora)
+	espora.global_position = origen
+	if espora.has_method("configurar"):
+		espora.configurar(direccion, tamanio_atacante, atacante)
+	return espora
 
 # Deja la direccion en el plano XZ y normalizada: sin apuntado vertical.
 static func direccion_horizontal(direccion: Vector3) -> Vector3:
