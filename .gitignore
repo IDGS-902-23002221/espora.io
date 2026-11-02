@@ -6,6 +6,9 @@ export_credentials.cfg
 # Tests y reportes
 reports/
 
+# Builds
+builds/
+
 # Sistema
 .DS_Store
 Thumbs.db
