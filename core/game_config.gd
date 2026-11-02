@@ -45,6 +45,11 @@ const INTERVALO_ESPORA_VELOZ_MIN: float = 40.0
 const INTERVALO_ESPORA_VELOZ_MAX: float = 60.0
 const NPC_MAX_ABSOLUTO: int = 24
 
+# Aparicion de NPC por horda (tamano base por multiplicador de horda).
+const TAMANIO_APARICION_NPC_MIN: float = 0.6
+const TAMANIO_APARICION_NPC_MAX: float = 1.8
+const DISTANCIA_MIN_APARICION: float = 20.0
+
 # Hordas: solo datos, sin logica.
 # Pausa entre hordas, en segundos (valor de balance).
 const PAUSA_ENTRE_HORDAS: float = 5.0

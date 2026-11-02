@@ -25,3 +25,10 @@ offset_left = 120.0
 offset_top = 16.0
 offset_right = 160.0
 offset_bottom = 56.0
+
+[node name="LabelHorda" type="Label" parent="." unique_id=535009535]
+offset_left = 16.0
+offset_top = 64.0
+offset_right = 56.0
+offset_bottom = 87.0
+text = "Horda 1/5"

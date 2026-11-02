@@ -32,6 +32,16 @@ static func duracion(indice_horda: int) -> float:
 		return 0.0
 	return float(config["duracion"])
 
+# Tamano de aparicion: base uniforme entre MIN y MAX, por el multiplicador de
+# la horda, con el mismo tope que cualquier NPC.
+static func tamanio_aparicion(multiplicador: float, azar: float) -> float:
+	var base: float = lerpf(
+		GameConfig.TAMANIO_APARICION_NPC_MIN,
+		GameConfig.TAMANIO_APARICION_NPC_MAX,
+		clampf(azar, 0.0, 1.0)
+	)
+	return minf(base * multiplicador, GameConfig.TAMANIO_MAXIMO)
+
 # Avanza el reloj y devuelve todos los eventos cruzados, en orden.
 # Con un delta grande no se pierde ninguna transicion.
 func avanzar_tiempo(delta: float) -> Array:
@@ -57,6 +67,24 @@ func avanzar_tiempo(delta: float) -> Array:
 			en_pausa = true
 			tiempo_restante = GameConfig.PAUSA_ENTRE_HORDAS
 			eventos.append(Evento.FIN_HORDA)
+	return eventos
+
+# Salto de depuracion: cierra la horda actual y arranca la siguiente sin pausa.
+func saltar_horda() -> Array:
+	var eventos: Array = []
+	if terminada:
+		return eventos
+	if en_pausa:
+		_iniciar_horda(indice + 1)
+		eventos.append(Evento.INICIO_HORDA)
+		return eventos
+	if indice >= ultima():
+		terminada = true
+		eventos.append(Evento.FIN_PARTIDA)
+		return eventos
+	eventos.append(Evento.FIN_HORDA)
+	_iniciar_horda(indice + 1)
+	eventos.append(Evento.INICIO_HORDA)
 	return eventos
 
 func reiniciar() -> void:

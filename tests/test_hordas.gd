@@ -90,3 +90,54 @@ func test_reiniciar_vuelve_al_inicio() -> void:
 	assert_bool(hordas.en_pausa).is_false()
 	assert_bool(hordas.terminada).is_false()
 	assert_float(hordas.tiempo_restante).is_equal_approx(Hordas.duracion(0), 0.0001)
+
+func test_saltar_horda_desde_activa() -> void:
+	var hordas: Hordas = Hordas.new()
+	var eventos: Array = hordas.saltar_horda()
+	assert_array(eventos).has_size(2)
+	assert_int(eventos[0]).is_equal(Hordas.Evento.FIN_HORDA)
+	assert_int(eventos[1]).is_equal(Hordas.Evento.INICIO_HORDA)
+	assert_int(hordas.indice).is_equal(1)
+	assert_bool(hordas.en_pausa).is_false()
+	assert_float(hordas.tiempo_restante).is_equal_approx(Hordas.duracion(1), 0.0001)
+
+func test_saltar_horda_desde_pausa() -> void:
+	var hordas: Hordas = Hordas.new()
+	hordas.avanzar_tiempo(Hordas.duracion(0))
+	assert_bool(hordas.en_pausa).is_true()
+	var eventos: Array = hordas.saltar_horda()
+	assert_array(eventos).has_size(1)
+	assert_int(eventos[0]).is_equal(Hordas.Evento.INICIO_HORDA)
+	assert_int(hordas.indice).is_equal(1)
+	assert_bool(hordas.en_pausa).is_false()
+
+func test_saltar_horda_en_la_ultima_termina_la_partida() -> void:
+	var hordas: Hordas = Hordas.new()
+	while hordas.indice < Hordas.ultima():
+		hordas.saltar_horda()
+	var eventos: Array = hordas.saltar_horda()
+	assert_array(eventos).has_size(1)
+	assert_int(eventos[0]).is_equal(Hordas.Evento.FIN_PARTIDA)
+	assert_bool(hordas.terminada).is_true()
+
+func test_saltar_horda_tras_terminar_no_emite() -> void:
+	var hordas: Hordas = Hordas.new()
+	while not hordas.terminada:
+		hordas.saltar_horda()
+	assert_array(hordas.saltar_horda()).is_empty()
+
+func test_tamanio_aparicion_extremos_y_medio() -> void:
+	assert_float(Hordas.tamanio_aparicion(1.0, 0.0)).is_equal_approx(GameConfig.TAMANIO_APARICION_NPC_MIN, 0.0001)
+	assert_float(Hordas.tamanio_aparicion(1.0, 1.0)).is_equal_approx(GameConfig.TAMANIO_APARICION_NPC_MAX, 0.0001)
+	var medio: float = (GameConfig.TAMANIO_APARICION_NPC_MIN + GameConfig.TAMANIO_APARICION_NPC_MAX) / 2.0
+	assert_float(Hordas.tamanio_aparicion(1.0, 0.5)).is_equal_approx(medio, 0.0001)
+
+func test_tamanio_aparicion_aplica_multiplicador() -> void:
+	assert_float(Hordas.tamanio_aparicion(1.4, 1.0)).is_equal_approx(1.8 * 1.4, 0.0001)
+
+func test_tamanio_aparicion_respeta_el_tope() -> void:
+	assert_float(Hordas.tamanio_aparicion(10.0, 1.0)).is_equal_approx(GameConfig.TAMANIO_MAXIMO, 0.0001)
+
+func test_tamanio_aparicion_recorta_el_azar() -> void:
+	assert_float(Hordas.tamanio_aparicion(1.0, -1.0)).is_equal_approx(GameConfig.TAMANIO_APARICION_NPC_MIN, 0.0001)
+	assert_float(Hordas.tamanio_aparicion(1.0, 2.0)).is_equal_approx(GameConfig.TAMANIO_APARICION_NPC_MAX, 0.0001)

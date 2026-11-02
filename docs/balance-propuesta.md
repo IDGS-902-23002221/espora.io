@@ -100,6 +100,11 @@ Arena circular, radio `RADIO_MAPA = 60`.
 | `INTERVALO_NUTRIENTE_DORADO` | 30 – 45 | Máximo uno activo |
 | `INTERVALO_ESPORA_ESCUDO` / `INTERVALO_ESPORA_VELOZ` | 40 – 60 | Máximo uno activo de cada tipo |
 | `NPC_MAX_ABSOLUTO` | 24 | Tope duro; **medir rendimiento en hardware sin GPU dedicada antes de subirlo** |
+| `TAMANIO_APARICION_NPC_MIN` | 0.6 | Tamaño base mínimo de aparición |
+| `TAMANIO_APARICION_NPC_MAX` | 1.8 | Tamaño base máximo de aparición |
+| `DISTANCIA_MIN_APARICION` | 20 | Distancia mínima al jugador al aparecer |
+
+El tamaño de aparición se sortea uniforme entre `TAMANIO_APARICION_NPC_MIN` y `TAMANIO_APARICION_NPC_MAX`, se multiplica por `mult_tamanio_aparicion` de la horda y se limita a `TAMANIO_MAXIMO`.
 
 ---
 

@@ -5,6 +5,7 @@ extends CanvasLayer
 @export var punto_1: ColorRect
 @export var punto_2: ColorRect
 @export var punto_3: ColorRect
+@export var etiqueta_horda: Label
 
 # Colores del indicador de dano (docs/balance-propuesta.md, seccion 4).
 const COLOR_LLENO: Color = Color(0.0, 1.0, 1.0, 1.0)
@@ -18,8 +19,16 @@ var _puntos: int = GameConfig.IMPACTOS_PARA_ABSORBER
 var _controles: Array[ColorRect] = []
 var _indice_parpadeo: int = -1
 var _tiempo_parpadeo: float = 0.0
+# Autoload por ruta y cache de la ultima horda pintada.
+var _game_manager: Node
+var _ultima_horda: int = -1
 
 func _ready() -> void:
+	_game_manager = get_node_or_null("/root/GameManager")
+	# Si el @export no se asigno en el editor, se resuelve por nombre.
+	if etiqueta_horda == null:
+		etiqueta_horda = get_node_or_null("LabelHorda") as Label
+	_actualizar_horda()
 	_controles = [punto_1, punto_2, punto_3]
 	if jugador != null and jugador.has_method("puntos_actuales"):
 		_puntos = int(jugador.call("puntos_actuales"))
@@ -28,6 +37,7 @@ func _ready() -> void:
 	_pintar()
 
 func _process(delta: float) -> void:
+	_actualizar_horda()
 	if _indice_parpadeo < 0:
 		return
 	_tiempo_parpadeo -= delta
@@ -47,6 +57,16 @@ func _on_puntos_cambiados(restantes: int) -> void:
 		_indice_parpadeo = -1
 	_puntos = restantes
 	_pintar()
+
+# Refresca solo cuando cambia el indice; durante la pausa queda la horda terminada.
+func _actualizar_horda() -> void:
+	if etiqueta_horda == null or _game_manager == null:
+		return
+	var actual: int = int(_game_manager.get("indice_horda"))
+	if actual == _ultima_horda:
+		return
+	_ultima_horda = actual
+	etiqueta_horda.text = "Horda %d/%d" % [actual + 1, Hordas.total()]
 
 func _pintar() -> void:
 	for i in _controles.size():

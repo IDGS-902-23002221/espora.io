@@ -14,6 +14,13 @@ var indice_horda: int:
 func configuracion_horda() -> Dictionary:
 	return Hordas.configuracion(hordas.indice)
 
+func iniciar_partida() -> void:
+	estado_partida = EstadoPartida.JUGANDO
+	hordas.reiniciar()
+
+func esta_jugando() -> bool:
+	return estado_partida == EstadoPartida.JUGANDO
+
 func reiniciar() -> void:
 	estado_partida = EstadoPartida.MENU
 	puntaje = 0
