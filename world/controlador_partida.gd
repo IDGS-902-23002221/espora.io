@@ -7,12 +7,16 @@ const ALTURA_APARICION: float = 0.1
 const MAX_INTENTOS_APARICION: int = 32
 
 @export var jugador: Node3D
+@export var pantalla_resultado: CanvasLayer
 
 # Autoload por ruta: `--check-only` valida el script sin cargar autoloads.
 var _game_manager: Node
+var _fin_mostrado: bool = false
 
 func _ready() -> void:
 	_game_manager = get_node_or_null("/root/GameManager")
+	if pantalla_resultado == null:
+		pantalla_resultado = get_node_or_null("../PantallaResultado") as CanvasLayer
 	if _game_manager != null:
 		_game_manager.call("iniciar_partida")
 	_conectar_eventos()
@@ -69,6 +73,18 @@ func _on_jugador_absorbido() -> void:
 func _on_derrota() -> void:
 	if _game_manager != null:
 		_game_manager.call("terminar_partida", false)
+	_mostrar_resultado(false)
+
+func _mostrar_resultado(es_victoria: bool) -> void:
+	if _fin_mostrado:
+		return
+	_fin_mostrado = true
+	get_tree().paused = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	if pantalla_resultado == null or _game_manager == null:
+		return
+	var progreso: Puntaje = _game_manager.get("progreso")
+	pantalla_resultado.call("mostrar", es_victoria, progreso)
 
 func _atender_debug() -> void:
 	if not OS.is_debug_build():
@@ -83,11 +99,18 @@ func _procesar_eventos(eventos: Array) -> void:
 		var tipo: int = int(evento)
 		if tipo == Hordas.Evento.INICIO_HORDA:
 			_generar_horda()
-		elif tipo == Hordas.Evento.FIN_HORDA or tipo == Hordas.Evento.FIN_PARTIDA:
+		elif tipo == Hordas.Evento.FIN_HORDA:
 			if _game_manager != null:
 				var progreso: Puntaje = _game_manager.get("progreso")
 				if progreso != null:
 					progreso.sumar_horda()
+		elif tipo == Hordas.Evento.FIN_PARTIDA:
+			if _game_manager != null:
+				var progreso: Puntaje = _game_manager.get("progreso")
+				if progreso != null:
+					progreso.sumar_horda()
+				_game_manager.call("terminar_partida", true)
+			_mostrar_resultado(true)
 
 # Top-up: conserva los NPC vivos (incluidos los que estan en cooldown) y agrega
 # solo la diferencia hasta el objetivo de la horda, con el tope absoluto.
