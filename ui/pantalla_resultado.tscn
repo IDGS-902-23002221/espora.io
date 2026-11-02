@@ -1,0 +1,71 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/pantalla_resultado.gd" id="1_pantalla"]
+
+[node name="PantallaResultado" type="CanvasLayer"]
+layer = 10
+visible = false
+script = ExtResource("1_pantalla")
+
+[node name="Fondo" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.72)
+
+[node name="Centro" type="VBoxContainer" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -240.0
+offset_right = 280.0
+offset_bottom = 240.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+theme_override_constants/separation = 12
+
+[node name="LabelTitulo" type="Label" parent="Centro"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+text = "¡Amanece!"
+horizontal_alignment = 1
+
+[node name="LabelSubtitulo" type="Label" parent="Centro"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Tu micelio dominó el claro."
+horizontal_alignment = 1
+
+[node name="LabelPuntaje" type="Label" parent="Centro"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Puntaje: 0"
+horizontal_alignment = 1
+
+[node name="LabelAbsorbidos" type="Label" parent="Centro"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "NPC absorbidos: 0"
+horizontal_alignment = 1
+
+[node name="LabelTamanio" type="Label" parent="Centro"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Tamaño máximo: 1.0"
+horizontal_alignment = 1
+
+[node name="LabelTiempo" type="Label" parent="Centro"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Tiempo: 00:00"
+horizontal_alignment = 1
+
+[node name="ButtonReiniciar" type="Button" parent="Centro"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Jugar de nuevo"
