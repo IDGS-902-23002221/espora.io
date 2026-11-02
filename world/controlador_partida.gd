@@ -15,16 +15,60 @@ func _ready() -> void:
 	_game_manager = get_node_or_null("/root/GameManager")
 	if _game_manager != null:
 		_game_manager.call("iniciar_partida")
+	_conectar_eventos()
 	_generar_horda()
+
+func _conectar_eventos() -> void:
+	if jugador != null:
+		jugador.connect("nutriente_consumido", _on_nutriente_consumido)
+		jugador.connect("absorcion_realizada", _on_absorcion_realizada)
+		jugador.connect("absorbido", _on_jugador_absorbido)
+	if _game_manager == null:
+		return
+	var progreso: Puntaje = _game_manager.get("progreso")
+	if progreso != null:
+		progreso.derrota.connect(_on_derrota)
 
 func _process(delta: float) -> void:
 	if _game_manager == null:
 		return
 	if not bool(_game_manager.call("esta_jugando")):
 		return
+	var progreso: Puntaje = _game_manager.get("progreso")
+	if progreso != null:
+		progreso.avanzar_tiempo(delta)
 	_atender_debug()
 	var hordas: Hordas = _game_manager.get("hordas")
 	_procesar_eventos(hordas.avanzar_tiempo(delta))
+
+func _on_nutriente_consumido() -> void:
+	if _game_manager == null or jugador == null:
+		return
+	var progreso: Puntaje = _game_manager.get("progreso")
+	if progreso == null:
+		return
+	progreso.sumar_nutriente()
+	progreso.registrar_tamanio(float(jugador.get("tamanio")))
+
+func _on_absorcion_realizada(_tamanio_absorbido: float) -> void:
+	if _game_manager == null or jugador == null:
+		return
+	var progreso: Puntaje = _game_manager.get("progreso")
+	if progreso == null:
+		return
+	progreso.registrar_absorcion()
+	progreso.registrar_tamanio(float(jugador.get("tamanio")))
+
+func _on_jugador_absorbido() -> void:
+	if _game_manager == null:
+		return
+	var progreso: Puntaje = _game_manager.get("progreso")
+	if progreso != null:
+		progreso.perder_intento()
+
+func _on_derrota() -> void:
+	if _game_manager != null:
+		_game_manager.call("terminar_partida", false)
 
 func _atender_debug() -> void:
 	if not OS.is_debug_build():
@@ -36,8 +80,14 @@ func _atender_debug() -> void:
 
 func _procesar_eventos(eventos: Array) -> void:
 	for evento in eventos:
-		if int(evento) == Hordas.Evento.INICIO_HORDA:
+		var tipo: int = int(evento)
+		if tipo == Hordas.Evento.INICIO_HORDA:
 			_generar_horda()
+		elif tipo == Hordas.Evento.FIN_HORDA or tipo == Hordas.Evento.FIN_PARTIDA:
+			if _game_manager != null:
+				var progreso: Puntaje = _game_manager.get("progreso")
+				if progreso != null:
+					progreso.sumar_horda()
 
 # Top-up: conserva los NPC vivos (incluidos los que estan en cooldown) y agrega
 # solo la diferencia hasta el objetivo de la horda, con el tope absoluto.

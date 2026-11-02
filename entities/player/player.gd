@@ -7,6 +7,8 @@ const MULT_ATACANTE_DEBUG: float = 2.0
 
 signal puntos_cambiados(restantes: int)
 signal absorbido
+signal nutriente_consumido
+signal absorcion_realizada(tamanio_absorbido: float)
 
 @export var camara: Camera3D
 # Escena de la espora y punto frontal desde donde sale el disparo.
@@ -99,11 +101,14 @@ static func direccion_disparo_horizontal(base_camara: Basis) -> Vector3:
 func consumir_nutriente() -> void:
 	tamanio = Crecimiento.crecer(tamanio)
 	_aplicar_tamanio()
+	# Despues de actualizar el tamano, para que el maximo no quede atras.
+	nutriente_consumido.emit()
 
 # Lo llama el NPC absorbido a traves de la referencia que guardo la espora.
 func absorber(tamanio_absorbido: float) -> void:
 	tamanio = Absorcion.crecimiento_por_absorcion(tamanio, tamanio_absorbido)
 	_aplicar_tamanio()
+	absorcion_realizada.emit(tamanio_absorbido)
 
 func puntos_actuales() -> int:
 	return _puntos_dano.puntos
@@ -138,6 +143,13 @@ func _on_absorbido() -> void:
 	_iniciar_reaparicion.call_deferred()
 
 func _iniciar_reaparicion() -> void:
+	# Sin intentos (o partida terminada) no hay reaparicion: derrota.
+	var gm: Node = get_node_or_null("/root/GameManager")
+	if gm != null:
+		var progreso: Puntaje = gm.get("progreso")
+		if progreso == null or progreso.intentos <= 0 or not bool(gm.call("esta_jugando")):
+			return
+
 	# El que nos vacio crece con el tamano que teniamos (regla congelada).
 	if _atacante_ultimo != null and _atacante_ultimo.has_method("absorber"):
 		_atacante_ultimo.absorber(tamanio)

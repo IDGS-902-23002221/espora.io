@@ -6,6 +6,8 @@ extends CanvasLayer
 @export var punto_2: ColorRect
 @export var punto_3: ColorRect
 @export var etiqueta_horda: Label
+@export var etiqueta_puntaje: Label
+@export var etiqueta_intentos: Label
 
 # Colores del indicador de dano (docs/balance-propuesta.md, seccion 4).
 const COLOR_LLENO: Color = Color(0.0, 1.0, 1.0, 1.0)
@@ -25,9 +27,14 @@ var _ultima_horda: int = -1
 
 func _ready() -> void:
 	_game_manager = get_node_or_null("/root/GameManager")
-	# Si el @export no se asigno en el editor, se resuelve por nombre.
+	# Si los @export no se asignaron en el editor, se resuelven por nombre.
 	if etiqueta_horda == null:
 		etiqueta_horda = get_node_or_null("LabelHorda") as Label
+	if etiqueta_puntaje == null:
+		etiqueta_puntaje = get_node_or_null("LabelPuntaje") as Label
+	if etiqueta_intentos == null:
+		etiqueta_intentos = get_node_or_null("LabelIntentos") as Label
+	_conectar_progreso()
 	_actualizar_horda()
 	_controles = [punto_1, punto_2, punto_3]
 	if jugador != null and jugador.has_method("puntos_actuales"):
@@ -57,6 +64,25 @@ func _on_puntos_cambiados(restantes: int) -> void:
 		_indice_parpadeo = -1
 	_puntos = restantes
 	_pintar()
+
+func _conectar_progreso() -> void:
+	if _game_manager == null:
+		return
+	var progreso: Puntaje = _game_manager.get("progreso")
+	if progreso == null:
+		return
+	progreso.puntaje_cambiado.connect(_on_puntaje_cambiado)
+	progreso.intentos_cambiados.connect(_on_intentos_cambiados)
+	_on_puntaje_cambiado(progreso.puntos)
+	_on_intentos_cambiados(progreso.intentos)
+
+func _on_puntaje_cambiado(total: int) -> void:
+	if etiqueta_puntaje != null:
+		etiqueta_puntaje.text = "Puntaje: %d" % total
+
+func _on_intentos_cambiados(restantes: int) -> void:
+	if etiqueta_intentos != null:
+		etiqueta_intentos.text = "Intentos: %d" % restantes
 
 # Refresca solo cuando cambia el indice; durante la pausa queda la horda terminada.
 func _actualizar_horda() -> void:

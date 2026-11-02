@@ -35,7 +35,7 @@ No cambiarlas, reinterpretarlas ni "mejorarlas" sin un ticket que lo pida explí
 
 ### Decisiones tomadas por el usuario
 
-- **El jugador NO tiene vidas ni game over por daño.** Si es absorbido, reaparece más pequeño con cooldown (storyboard 4).
+- **El jugador tiene 3 intentos (`INTENTOS_INICIALES`).** Cada vez que es absorbido resta 1 intento y reaparece más pequeño con cooldown; al llegar a 0 la partida termina en derrota (cambio por rúbrica, 2026-11-01). Los 3 puntos de daño se mantienen.
 - **Indicador de daño:** 3 puntos en el HUD que cambian de color o se vacían con cada impacto de espora recibido (representan los 3 impactos que absorben al objetivo).
 - **Ventana de impactos:** cada impacto reinicia un temporizador de 4 s; si vence sin nuevos impactos, el objetivo recupera 1 punto. Se absorbe cuando los 3 puntos están vacíos.
 - **Los NPC también muestran sus 3 puntos** sobre la cabeza, con las mismas reglas.

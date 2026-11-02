@@ -81,6 +81,15 @@ Si los NPC fueran más rápidos que el jugador desde el inicio, no se podría hu
 
 **Qué significa "3 impactos seguidos":** cada impacto reinicia un temporizador de `TIEMPO_REGENERACION_PUNTO`. Si vence sin nuevos impactos, el objetivo recupera 1 punto y el temporizador vuelve a correr hasta llenar los 3. Ejemplo: impacto, pausa de 5 s (recupera el punto), impacto, impacto: no se absorbe, porque no fueron seguidos.
 
+## 4.1 Puntaje e intentos (provisional, por rúbrica)
+
+| Constante | Valor propuesto | Significado |
+|---|---|---|
+| `INTENTOS_INICIALES` | 3 | Intentos del jugador; al agotarse, derrota |
+| `PUNTOS_POR_NUTRIENTE` | 10 | Puntos por nutriente consumido |
+| `PUNTOS_POR_ABSORCION` | 100 | Puntos por absorber un NPC |
+| `PUNTOS_POR_HORDA_SUPERADA` | 250 | Puntos al terminar cada horda (incluida la 5.ª) |
+
 ---
 
 ## 5. Mapa, biomas y NPC

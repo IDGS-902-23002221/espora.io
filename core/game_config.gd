@@ -18,6 +18,12 @@ const FRACCION_REAPARICION: float = 0.60
 const COOLDOWN_REAPARICION_JUGADOR: float = 3.0
 const COOLDOWN_REAPARICION_NPC: float = 3.0
 
+# Puntaje e intentos (provisional, por rubrica).
+const INTENTOS_INICIALES: int = 3
+const PUNTOS_POR_NUTRIENTE: int = 10
+const PUNTOS_POR_ABSORCION: int = 100
+const PUNTOS_POR_HORDA_SUPERADA: int = 250
+
 # Velocidad.
 const VELOCIDAD_BASE_JUGADOR: float = 6.0
 const PENALIZACION_VELOCIDAD_POR_TAMANIO: float = 0.08
