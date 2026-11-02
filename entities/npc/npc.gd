@@ -13,6 +13,12 @@ const EscenaEspora: PackedScene = preload("res://entities/spore/spore.tscn")
 
 # Misma altura que usan los NPC colocados en la arena.
 const ALTURA_REAPARICION: float = 0.1
+# Altura fija del disparo: 0.8 entra en cualquier capsula (todas empiezan en y=0),
+# incluso cuando el NPC es mucho mas grande que su objetivo. Disparar al centro
+# propio pasaba por encima de los hongos chicos.
+const ALTURA_DISPARO: float = 0.8
+# Cada cuanto se vuelve a elegir el hongo objetivo (no por frame).
+const INTERVALO_OBJETIVO: float = 0.5
 
 var tamanio: float = 1.0
 # Puntos de dano propios; se vacian con impactos de esporas validos.
@@ -27,6 +33,11 @@ var _atacante_ultimo: Node3D
 var _en_cooldown: bool = false
 var _tiempo_cooldown: float = 0.0
 var _tiempo_disparo: float = 0.0
+# Objetivo actual: el hongo mas cercano dentro del radio (jugador u otro NPC).
+var _objetivo: Node3D
+var _objetivo_posicion: Vector3 = Vector3.ZERO
+var _objetivo_tamanio: float = 0.0
+var _tiempo_objetivo: float = 0.0
 # Config de la horda actual, cacheada por indice para no leerla cada frame.
 var _horda_indice: int = -1
 var _horda_config: Dictionary = {}
@@ -37,6 +48,8 @@ var _game_manager: Node
 @onready var _colision: CollisionShape3D = $CollisionShape3D
 
 func _ready() -> void:
+	# Grupo para que los demas NPC puedan elegirlo como objetivo.
+	add_to_group("npcs")
 	_game_manager = get_node_or_null("/root/GameManager")
 	tamanio = tamanio_inicial
 	_aplicar_tamanio()
@@ -60,6 +73,7 @@ func _physics_process(delta: float) -> void:
 
 	# La regeneracion (4 s por punto) corre en el NPC, no en el proyectil.
 	_puntos_dano.avanzar_tiempo(delta)
+	_actualizar_objetivo(delta)
 	_actualizar_estado(delta)
 	_actualizar_disparo(delta)
 	var direccion: Vector3 = _direccion_actual(delta)
@@ -72,24 +86,15 @@ func _physics_process(delta: float) -> void:
 	_mantener_en_arena()
 
 func _actualizar_estado(delta: float) -> void:
-	if jugador == null:
-		_cambiar_estado(ReglaTamanio.EstadoTamanio.NEUTRAL)
+	if _objetivo == null:
+		if _tiempo_estado >= GameConfig.TIEMPO_MIN_ESTADO:
+			_cambiar_estado(ReglaTamanio.EstadoTamanio.NEUTRAL)
+		else:
+			_tiempo_estado += delta
 		return
 
-	var tamanio_jugador: float = _tamanio_del_jugador()
-	var proporcion_actual: float = ReglaTamanio.proporcion(tamanio, tamanio_jugador)
-	var radio: float = float(_config_horda()["radio_deteccion_npc"])
-	var distancia: float = _distancia_horizontal(jugador.global_position)
-
-	var siguiente: int
-	if distancia > radio:
-		if _tiempo_estado >= GameConfig.TIEMPO_MIN_ESTADO:
-			siguiente = ReglaTamanio.EstadoTamanio.NEUTRAL
-		else:
-			siguiente = _estado
-	else:
-		siguiente = ReglaTamanio.siguiente_estado(_estado, proporcion_actual, _tiempo_estado)
-
+	var proporcion_actual: float = ReglaTamanio.proporcion(tamanio, _objetivo_tamanio)
+	var siguiente: int = ReglaTamanio.siguiente_estado(_estado, proporcion_actual, _tiempo_estado)
 	if siguiente != _estado:
 		_cambiar_estado(siguiente)
 	else:
@@ -108,9 +113,9 @@ func _direccion_actual(delta: float) -> Vector3:
 	var direccion: Vector3 = Vector3.ZERO
 	match _estado:
 		ReglaTamanio.EstadoTamanio.PERSEGUIR:
-			direccion = _direccion_desde_jugador()
+			direccion = _direccion_hacia(_objetivo_posicion)
 		ReglaTamanio.EstadoTamanio.HUIR:
-			direccion = -_direccion_desde_jugador()
+			direccion = -_direccion_hacia(_objetivo_posicion)
 		_:
 			_tiempo_deambular += delta
 			if _tiempo_deambular >= intervalo_deambular:
@@ -118,10 +123,8 @@ func _direccion_actual(delta: float) -> Vector3:
 			direccion = _direccion_deambular
 	return _evitar_borde(direccion)
 
-func _direccion_desde_jugador() -> Vector3:
-	if jugador == null:
-		return Vector3.ZERO
-	var direccion: Vector3 = jugador.global_position - global_position
+func _direccion_hacia(objetivo: Vector3) -> Vector3:
+	var direccion: Vector3 = objetivo - global_position
 	direccion.y = 0.0
 	if direccion.length_squared() == 0.0:
 		return Vector3.ZERO
@@ -141,11 +144,19 @@ func _mantener_en_arena() -> void:
 		global_position.x = plano.x
 		global_position.z = plano.y
 
-func _tamanio_del_jugador() -> float:
-	var valor: Variant = jugador.get("tamanio")
+func _tamanio_de(nodo: Node3D) -> float:
+	var valor: Variant = nodo.get("tamanio")
 	if valor == null:
 		return GameConfig.TAMANIO_INICIAL
 	return float(valor)
+
+func _es_activo(nodo: Node3D) -> bool:
+	if nodo.has_method("esta_activo"):
+		return bool(nodo.call("esta_activo"))
+	return true
+
+func _radio_deteccion() -> float:
+	return float(_config_horda()["radio_deteccion_npc"])
 
 func _distancia_horizontal(objetivo: Vector3) -> float:
 	return Vector2(objetivo.x - global_position.x, objetivo.z - global_position.z).length()
@@ -171,6 +182,90 @@ func _config_horda() -> Dictionary:
 		_horda_config = _game_manager.call("configuracion_horda")
 	return _horda_config
 
+# Refresca el objetivo cada INTERVALO_OBJETIVO; entre refrescos solo actualiza
+# su posicion/tamano para no recorrer candidatos por frame.
+func _actualizar_objetivo(delta: float) -> void:
+	_tiempo_objetivo -= delta
+	var recargar: bool = _tiempo_objetivo <= 0.0
+	if _objetivo != null and (not is_instance_valid(_objetivo) or not _es_activo(_objetivo)):
+		recargar = true
+	if recargar:
+		_objetivo = _elegir_objetivo()
+		_tiempo_objetivo = INTERVALO_OBJETIVO
+	if _objetivo == null:
+		_objetivo_posicion = global_position
+		_objetivo_tamanio = 0.0
+		return
+	_objetivo_posicion = _objetivo.global_position
+	_objetivo_tamanio = _tamanio_de(_objetivo)
+
+func _elegir_objetivo() -> Node3D:
+	var candidatos: Array = []
+	if jugador != null and _es_activo(jugador):
+		candidatos.append(_candidato(jugador))
+	# Entre NPC se detectan a menor distancia para que el ecosistema no sea caotico.
+	var radio_npc: float = _radio_deteccion() * GameConfig.FACTOR_RADIO_NPC_NPC
+	for nodo in get_tree().get_nodes_in_group("npcs"):
+		var otro: Node3D = nodo as Node3D
+		if otro == null or otro == self or not _es_activo(otro):
+			continue
+		if _distancia_horizontal(otro.global_position) > radio_npc:
+			continue
+		candidatos.append(_candidato(otro))
+	var elegido: Dictionary = elegir_objetivo(global_position, candidatos, _radio_deteccion())
+	if elegido.is_empty():
+		return null
+	return elegido["nodo"] as Node3D
+
+func _candidato(nodo: Node3D) -> Dictionary:
+	return {
+		"posicion": nodo.global_position,
+		"tamanio": _tamanio_de(nodo),
+		"nodo": nodo,
+	}
+
+# Resuelve donde interceptar al objetivo: |D + V*t| = v*t en el plano XZ.
+# Si no hay solucion positiva (objetivo mas rapido que la espora), apunta al actual.
+static func punto_intercepcion(origen: Vector3, posicion_objetivo: Vector3, velocidad_objetivo: Vector3) -> Vector3:
+	var d: Vector2 = Vector2(posicion_objetivo.x - origen.x, posicion_objetivo.z - origen.z)
+	var v: Vector2 = Vector2(velocidad_objetivo.x, velocidad_objetivo.z)
+	var rapidez: float = GameConfig.VELOCIDAD_ESPORA
+	var a: float = v.dot(v) - rapidez * rapidez
+	var b: float = 2.0 * d.dot(v)
+	var c: float = d.dot(d)
+	var tiempo: float = -1.0
+	var disc: float = b * b - 4.0 * a * c
+	if absf(a) > 0.0001 and disc >= 0.0:
+		var raiz: float = sqrt(disc)
+		var t1: float = (-b - raiz) / (2.0 * a)
+		var t2: float = (-b + raiz) / (2.0 * a)
+		if t1 > 0.0 and t2 > 0.0:
+			tiempo = minf(t1, t2)
+		elif t1 > 0.0:
+			tiempo = t1
+		elif t2 > 0.0:
+			tiempo = t2
+	if tiempo <= 0.0:
+		return posicion_objetivo
+	var punto: Vector3 = posicion_objetivo + velocidad_objetivo * tiempo
+	punto.y = posicion_objetivo.y
+	return punto
+
+# Elige el candidato mas cercano dentro del radio; vacio si no hay.
+static func elegir_objetivo(posicion: Vector3, candidatos: Array, radio: float) -> Dictionary:
+	var mejor: Dictionary = {}
+	var mejor_distancia: float = radio
+	for candidato in candidatos:
+		var p: Vector3 = candidato["posicion"]
+		var d: float = Vector2(p.x - posicion.x, p.z - posicion.z).length()
+		if d <= mejor_distancia:
+			mejor_distancia = d
+			mejor = candidato
+	return mejor
+
+func esta_activo() -> bool:
+	return not _en_cooldown
+
 func _aplicar_tamanio() -> void:
 	if _visual != null:
 		_visual.scale = Vector3.ONE * tamanio
@@ -189,6 +284,11 @@ func recibir_impacto(tamanio_atacante: float, atacante: Node3D) -> void:
 	_atacante_ultimo = atacante
 	# Delegar en PuntosDano mantiene la regla de 3 impactos y la regeneracion.
 	_puntos_dano.recibir_impacto()
+
+# El NPC tambien come nutrientes: crece igual que el jugador.
+func consumir_nutriente() -> void:
+	tamanio = Crecimiento.crecer(tamanio)
+	_aplicar_tamanio()
 
 # Lo llama el jugador absorbido; quien absorbe crece (regla congelada).
 func absorber(tamanio_absorbido: float) -> void:
@@ -210,31 +310,39 @@ static func puede_disparar(estado: int, distancia: float, radio: float, tiempo_c
 func _actualizar_disparo(delta: float) -> void:
 	if _tiempo_disparo > 0.0:
 		_tiempo_disparo = maxf(0.0, _tiempo_disparo - delta)
-	if jugador == null:
+	if _objetivo == null:
 		return
 	# Si no supera el umbral de dano, la espora no contaria: no gastar disparo.
-	if not impacto_cuenta(tamanio, _tamanio_del_jugador()):
+	if not impacto_cuenta(tamanio, _objetivo_tamanio):
 		return
-	var radio: float = float(_config_horda()["radio_deteccion_npc"])
-	var distancia: float = _distancia_horizontal(jugador.global_position)
+	var radio: float = _radio_deteccion()
+	var distancia: float = _distancia_horizontal(_objetivo_posicion)
 	if not puede_disparar(_estado, distancia, radio, _tiempo_disparo):
 		return
 	_disparar()
 
 func _disparar() -> void:
-	if jugador == null:
+	if _objetivo == null:
 		return
-	var direccion: Vector3 = _direccion_desde_jugador()
+	var velocidad_objetivo: Vector3 = Vector3.ZERO
+	var valor_velocidad: Variant = _objetivo.get("velocity")
+	if valor_velocidad != null:
+		velocidad_objetivo = valor_velocidad
+	var punto: Vector3 = punto_intercepcion(
+		global_position, _objetivo_posicion, velocidad_objetivo
+	)
+	var direccion: Vector3 = _direccion_hacia(punto)
 	if direccion == Vector3.ZERO:
 		return
 	var escena: Node = get_tree().current_scene
 	if escena == null:
 		return
-	# Centro de la colision: ya escala con el tamano, sin constante nueva.
-	var origen: Vector3 = global_position + Vector3(0.0, _colision.position.y, 0.0)
-	# La espora del NPC solo impacta al jugador (capa 1).
+	var origen: Vector3 = global_position + Vector3(0.0, ALTURA_DISPARO, 0.0)
+	# La espora del NPC impacta al jugador y a otros NPC (ecosistema).
+	# Va con anticipacion: se puede esquivar moviendose.
 	var espora: Area3D = EsporaScript.disparar(
-		EscenaEspora, escena, origen, direccion, tamanio, self, EsporaScript.CAPA_JUGADOR
+		EscenaEspora, escena, origen, direccion, tamanio, self,
+		EsporaScript.mascara_para(true)
 	)
 	if espora == null:
 		return

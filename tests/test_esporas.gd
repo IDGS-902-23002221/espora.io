@@ -61,3 +61,11 @@ func test_impacto_de_atacante_mas_grande_cuenta() -> void:
 func test_impacto_con_tamanio_objetivo_invalido_no_cuenta() -> void:
 	assert_bool(NpcScript.impacto_cuenta(1.0, 0.0)).is_false()
 	assert_bool(NpcScript.impacto_cuenta(9.0, -1.0)).is_false()
+
+func test_mascara_espora_del_jugador() -> void:
+	assert_int(EsporaScript.mascara_para(false)).is_equal(EsporaScript.CAPA_NPC)
+
+func test_mascara_espora_del_npc() -> void:
+	assert_int(EsporaScript.mascara_para(true)).is_equal(
+		EsporaScript.CAPA_JUGADOR | EsporaScript.CAPA_NPC
+	)

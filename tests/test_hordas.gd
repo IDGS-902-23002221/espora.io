@@ -14,7 +14,7 @@ func test_configuracion_valida_e_invalida() -> void:
 func test_configuracion_coincide_con_game_config() -> void:
 	assert_float(Hordas.duracion(0)).is_equal_approx(float(GameConfig.HORDAS[0]["duracion"]), 0.0001)
 	assert_float(float(Hordas.configuracion(0)["velocidad_npc"])).is_equal_approx(5.0, 0.0001)
-	assert_int(int(Hordas.configuracion(0)["npc_por_horda"])).is_equal(12)
+	assert_int(int(Hordas.configuracion(0)["npc_por_horda"])).is_equal(10)
 
 func test_estado_inicial() -> void:
 	var hordas: Hordas = Hordas.new()

@@ -16,6 +16,7 @@ rings = 3
 
 [node name="AreaNutriente" type="Area3D" unique_id=1287621599]
 collision_layer = 8
+collision_mask = 3
 monitorable = false
 script = ExtResource("1_poy5k")
 

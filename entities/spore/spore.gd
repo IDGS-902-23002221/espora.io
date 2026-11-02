@@ -35,7 +35,10 @@ func _physics_process(delta: float) -> void:
 func _on_body_entered(body: Node3D) -> void:
 	if _impactado:
 		return
-	# Solo reacciona a cuerpos que sepan recibir impactos (NPC).
+	# La espora del NPC nace dentro de su propia colision: ignorar al tirador.
+	if atacante != null and body == atacante:
+		return
+	# Solo reacciona a cuerpos que sepan recibir impactos (jugador o NPC).
 	if not body.has_method("recibir_impacto"):
 		return
 	_impactado = true
@@ -49,8 +52,8 @@ static func disparar(
 	contenedor: Node,
 	origen: Vector3,
 	direccion: Vector3,
-	tamanio_atacante: float,
-	atacante: Node3D,
+	tamanio_disparo: float,
+	tirador: Node3D,
 	mascara: int
 ) -> Area3D:
 	if escena == null or contenedor == null:
@@ -63,8 +66,15 @@ static func disparar(
 	contenedor.add_child(espora)
 	espora.global_position = origen
 	if espora.has_method("configurar"):
-		espora.configurar(direccion, tamanio_atacante, atacante)
+		espora.configurar(direccion, tamanio_disparo, tirador)
 	return espora
+
+# Mascara de impacto: el jugador pega solo a NPC; el NPC puede pegar a jugador
+# y a otros NPC (ecosistema). El tirador se ignora en `_on_body_entered`.
+static func mascara_para(es_npc: bool) -> int:
+	if es_npc:
+		return CAPA_JUGADOR | CAPA_NPC
+	return CAPA_NPC
 
 # Deja la direccion en el plano XZ y normalizada: sin apuntado vertical.
 static func direccion_horizontal(direccion: Vector3) -> Vector3:

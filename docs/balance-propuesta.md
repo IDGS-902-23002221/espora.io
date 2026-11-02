@@ -106,6 +106,8 @@ Arena circular, radio `RADIO_MAPA = 60`.
 
 El tamaño de aparición se sortea uniforme entre `TAMANIO_APARICION_NPC_MIN` y `TAMANIO_APARICION_NPC_MAX`, se multiplica por `mult_tamanio_aparicion` de la horda y se limita a `TAMANIO_MAXIMO`.
 
+Los NPC también consumen nutrientes con la misma `CRECIMIENTO_NUTRIENTE` que el jugador (provisional). Cada NPC elige al hongo más cercano dentro de su radio (jugador u otro NPC) y le aplica la regla de tamaño: puede perseguirlo y dispararle, o huir. Las esporas de NPC pueden dañar a otros NPC y van con anticipación: se pueden esquivar moviéndose. Entre NPC se detectan a `FACTOR_RADIO_NPC_NPC` (0.40) del radio normal, para que el ecosistema no sea caótico. El cooldown de reaparición de NPC es `COOLDOWN_REAPARICION_NPC` (3.0 s).
+
 ---
 
 ## 6. Hordas (propuesta pendiente de confirmación)
@@ -115,9 +117,9 @@ La noche se divide en **5 hordas de 90 s**, con 5 s de pausa entre una y otra (5
 | Constante | Horda 1 | Horda 2 | Horda 3 | Horda 4 | Horda 5 |
 |---|---|---|---|---|---|
 | `DURACION_HORDA` | 90 | 90 | 90 | 90 | 90 |
-| `NPC_POR_HORDA` | 12 | 14 | 16 | 18 | 20 |
+| `NPC_POR_HORDA` | 10 | 12 | 14 | 16 | 18 |
 | `VELOCIDAD_NPC` | 5.0 | 5.3 | 5.5 | 5.8 | 6.0 |
-| `COOLDOWN_DISPARO_NPC` | 1.2 | 1.05 | 0.9 | 0.8 | 0.7 |
+| `COOLDOWN_DISPARO_NPC` | 1.6 | 1.4 | 1.2 | 1.0 | 0.9 |
 | `RADIO_DETECCION_NPC` | 18 | 20 | 22 | 25 | 28 |
 | `MULT_TAMANIO_APARICION` | 1.0 | 1.1 | 1.2 | 1.3 | 1.4 |
 

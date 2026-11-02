@@ -78,7 +78,7 @@ func disparar() -> void:
 	# La espora del jugador impacta NPCs (capa 2) y nunca al propio jugador.
 	var espora: Area3D = EsporaScript.disparar(
 		escena_espora, escena, _origen_disparo(direccion), direccion,
-		tamanio, self, EsporaScript.CAPA_NPC
+		tamanio, self, EsporaScript.mascara_para(false)
 	)
 	if espora == null:
 		return
@@ -107,6 +107,10 @@ func absorber(tamanio_absorbido: float) -> void:
 
 func puntos_actuales() -> int:
 	return _puntos_dano.puntos
+
+# Mientras reaparece no puede ser objetivo de los NPC.
+func esta_activo() -> bool:
+	return not _en_reaparicion
 
 # Mismo umbral que el NPC. Reusa la proporcion de ReglaTamanio, ya existente.
 func recibir_impacto(tamanio_atacante: float, atacante: Node3D) -> void:

@@ -16,7 +16,7 @@ const MULT_NUTRIENTE_DORADO: float = 3.0
 const FRACCION_ABSORCION: float = 0.25
 const FRACCION_REAPARICION: float = 0.60
 const COOLDOWN_REAPARICION_JUGADOR: float = 3.0
-const COOLDOWN_REAPARICION_NPC: float = 2.0
+const COOLDOWN_REAPARICION_NPC: float = 3.0
 
 # Velocidad.
 const VELOCIDAD_BASE_JUGADOR: float = 6.0
@@ -50,47 +50,50 @@ const TAMANIO_APARICION_NPC_MIN: float = 0.6
 const TAMANIO_APARICION_NPC_MAX: float = 1.8
 const DISTANCIA_MIN_APARICION: float = 20.0
 
+# Ecosistema NPC: se detectan entre si a menor distancia para no saturar.
+const FACTOR_RADIO_NPC_NPC: float = 0.40
+
 # Hordas: solo datos, sin logica.
 # Pausa entre hordas, en segundos (valor de balance).
 const PAUSA_ENTRE_HORDAS: float = 5.0
 const HORDAS: Array[Dictionary] = [
 	{
 		"duracion": 90.0,
-		"npc_por_horda": 12,
+		"npc_por_horda": 10,
 		"velocidad_npc": 5.0,
-		"cooldown_disparo_npc": 1.2,
+		"cooldown_disparo_npc": 1.6,
 		"radio_deteccion_npc": 18.0,
 		"mult_tamanio_aparicion": 1.0,
 	},
 	{
 		"duracion": 90.0,
-		"npc_por_horda": 14,
+		"npc_por_horda": 12,
 		"velocidad_npc": 5.3,
-		"cooldown_disparo_npc": 1.05,
+		"cooldown_disparo_npc": 1.4,
 		"radio_deteccion_npc": 20.0,
 		"mult_tamanio_aparicion": 1.1,
 	},
 	{
 		"duracion": 90.0,
-		"npc_por_horda": 16,
+		"npc_por_horda": 14,
 		"velocidad_npc": 5.5,
-		"cooldown_disparo_npc": 0.9,
+		"cooldown_disparo_npc": 1.2,
 		"radio_deteccion_npc": 22.0,
 		"mult_tamanio_aparicion": 1.2,
 	},
 	{
 		"duracion": 90.0,
-		"npc_por_horda": 18,
+		"npc_por_horda": 16,
 		"velocidad_npc": 5.8,
-		"cooldown_disparo_npc": 0.8,
+		"cooldown_disparo_npc": 1.0,
 		"radio_deteccion_npc": 25.0,
 		"mult_tamanio_aparicion": 1.3,
 	},
 	{
 		"duracion": 90.0,
-		"npc_por_horda": 20,
+		"npc_por_horda": 18,
 		"velocidad_npc": 6.0,
-		"cooldown_disparo_npc": 0.7,
+		"cooldown_disparo_npc": 0.9,
 		"radio_deteccion_npc": 28.0,
 		"mult_tamanio_aparicion": 1.4,
 	},
