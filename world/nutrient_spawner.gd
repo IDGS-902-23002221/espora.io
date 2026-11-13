@@ -20,7 +20,7 @@ func _process(delta: float) -> void:
 func _crear_nutriente() -> void:
 	var nutriente: Node3D = escena_nutriente.instantiate()
 	var angulo: float = randf() * TAU
-	var radio: float = GameConfig.RADIO_MAPA * sqrt(randf())
+	var radio: float = Bioma.radio_ponderado(randf(), randf())
 	nutriente.position = Vector3(cos(angulo) * radio, 0.0, sin(angulo) * radio)
 	nutriente.tree_exited.connect(_on_nutriente_salio)
 	add_child(nutriente)

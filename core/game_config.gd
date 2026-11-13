@@ -59,6 +59,21 @@ const DISTANCIA_MIN_APARICION: float = 20.0
 # Ecosistema NPC: se detectan entre si a menor distancia para no saturar.
 const FACTOR_RADIO_NPC_NPC: float = 0.40
 
+# Biomas (provisional, docs/balance-propuesta.md §5).
+const BIOMA_BOSQUE_RADIO: float = 25.0
+const BIOMA_PANTANO_RADIO: float = 45.0
+const BIOMA_BOSQUE_DENSIDAD: float = 2.0
+const BIOMA_PANTANO_DENSIDAD: float = 1.0
+const BIOMA_CUEVA_DENSIDAD: float = 0.5
+const BIOMA_BOSQUE_NPC_MIN: float = 1.5
+const BIOMA_BOSQUE_NPC_MAX: float = 2.5
+const BIOMA_PANTANO_NPC_MIN: float = 0.8
+const BIOMA_PANTANO_NPC_MAX: float = 1.8
+const BIOMA_CUEVA_NPC_MIN: float = 0.5
+const BIOMA_CUEVA_NPC_MAX: float = 1.0
+const ROAMER_CUEVA_PROBABILIDAD: float = 0.10
+const ROAMER_CUEVA_TAMANIO: float = 2.2
+
 # Hordas: solo datos, sin logica.
 # Pausa entre hordas, en segundos (valor de balance).
 const PAUSA_ENTRE_HORDAS: float = 5.0

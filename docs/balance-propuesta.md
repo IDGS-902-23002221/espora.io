@@ -109,11 +109,15 @@ Arena circular, radio `RADIO_MAPA = 60`.
 | `INTERVALO_NUTRIENTE_DORADO` | 30 – 45 | Máximo uno activo |
 | `INTERVALO_ESPORA_ESCUDO` / `INTERVALO_ESPORA_VELOZ` | 40 – 60 | Máximo uno activo de cada tipo |
 | `NPC_MAX_ABSOLUTO` | 24 | Tope duro; **medir rendimiento en hardware sin GPU dedicada antes de subirlo** |
-| `TAMANIO_APARICION_NPC_MIN` | 0.6 | Tamaño base mínimo de aparición |
-| `TAMANIO_APARICION_NPC_MAX` | 1.8 | Tamaño base máximo de aparición |
+| `TAMANIO_APARICION_NPC_MIN` | 0.6 | Referencia de la regla anterior (ya no se usa para el tamaño por bioma) |
+| `TAMANIO_APARICION_NPC_MAX` | 1.8 | Referencia de la regla anterior (ya no se usa para el tamaño por bioma) |
 | `DISTANCIA_MIN_APARICION` | 20 | Distancia mínima al jugador al aparecer |
+| `ROAMER_CUEVA_PROBABILIDAD` | 0.10 | Probabilidad de roamer por spawn en la Cueva |
+| `ROAMER_CUEVA_TAMANIO` | 2.2 | Tamaño base del roamer, × multiplicador de horda |
 
-El tamaño de aparición se sortea uniforme entre `TAMANIO_APARICION_NPC_MIN` y `TAMANIO_APARICION_NPC_MAX`, se multiplica por `mult_tamanio_aparicion` de la horda y se limita a `TAMANIO_MAXIMO`.
+El tamaño de aparición se sortea dentro del rango del bioma de su punto de aparición (tabla de arriba), se multiplica por `mult_tamanio_aparicion` de la horda y se limita a `TAMANIO_MAXIMO`. En la Cueva, un 10 % de los spawns son un roamer grande (`ROAMER_CUEVA_TAMANIO` × multiplicador, con tope).
+
+Los nutrientes se muestrean con radio ponderado por área × densidad de cada zona (`core/bioma.gd`): más densidad en el centro y menos en el borde. Implementado en 001.4.1.
 
 Los NPC también consumen nutrientes con la misma `CRECIMIENTO_NUTRIENTE` que el jugador (provisional). Cada NPC elige al hongo más cercano dentro de su radio (jugador u otro NPC) y le aplica la regla de tamaño: puede perseguirlo y dispararle, o huir. Las esporas de NPC pueden dañar a otros NPC y van con anticipación: se pueden esquivar moviéndose. Entre NPC se detectan a `FACTOR_RADIO_NPC_NPC` (0.40) del radio normal, para que el ecosistema no sea caótico. El cooldown de reaparición de NPC es `COOLDOWN_REAPARICION_NPC` (3.0 s).
 

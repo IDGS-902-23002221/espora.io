@@ -132,11 +132,16 @@ func _crear_npc(multiplicador: float) -> void:
 	var npc: Node3D = EscenaNpc.instantiate() as Node3D
 	if npc == null:
 		return
+	var punto: Vector3 = _punto_aparicion()
+	var zona: int = Bioma.zona_para_radio(Vector2(punto.x, punto.z).length())
+	var tamanio: float = Bioma.tamanio_npc(zona, multiplicador, randf())
+	if Bioma.es_roamer(zona, randf()):
+		tamanio = Bioma.tamanio_roamer(multiplicador)
 	# Antes de entrar al arbol: el `_ready` del NPC usa tamanio_inicial.
 	npc.set("jugador", jugador)
 	npc.set("mostrar_estado", true)
-	npc.set("tamanio_inicial", Hordas.tamanio_aparicion(multiplicador, randf()))
-	npc.position = _punto_aparicion()
+	npc.set("tamanio_inicial", tamanio)
+	npc.position = punto
 	add_child(npc)
 
 # Distribucion uniforme en el circulo, rechazando puntos cerca del jugador.
