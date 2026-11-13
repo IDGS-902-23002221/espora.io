@@ -50,3 +50,9 @@ script = ExtResource("2_sglur")
 
 [node name="PuntoDisparo" type="Node3D" parent="." unique_id=1682505544]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, -1.2)
+
+[node name="LuzJugador" type="OmniLight3D" parent="." unique_id=265487537]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+light_color = Color(0.49803922, 0.9098039, 1, 1)
+light_energy = 0.4
+omni_range = 3.0
