@@ -8,6 +8,8 @@ extends CanvasLayer
 @export var etiqueta_tiempo: Label
 @export var boton_reiniciar: Button
 
+var _tween_entrada: Tween
+
 func _ready() -> void:
 	# Sigue respondiendo con el arbol pausado.
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -48,6 +50,31 @@ func mostrar(victoria: bool, progreso: Puntaje) -> void:
 	if boton_reiniciar != null:
 		boton_reiniciar.text = datos["boton"]
 	visible = true
+	_animar_entrada()
+
+func _animar_entrada() -> void:
+	if _tween_entrada != null and _tween_entrada.is_valid():
+		_tween_entrada.kill()
+	var controles: Array[Control] = [
+		etiqueta_titulo, etiqueta_subtitulo, etiqueta_puntaje,
+		etiqueta_absorbidos, etiqueta_tamanio, etiqueta_tiempo,
+		boton_reiniciar,
+	]
+	for control in controles:
+		if control == null:
+			continue
+		var modulacion: Color = control.modulate
+		modulacion.a = 0.0
+		control.modulate = modulacion
+	_tween_entrada = create_tween()
+	_tween_entrada.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_tween_entrada.set_parallel(true)
+	var retraso: float = 0.0
+	for control in controles:
+		if control == null:
+			continue
+		_tween_entrada.tween_property(control, "modulate:a", 1.0, 0.45).set_delay(retraso)
+		retraso += 0.10
 
 func _asignar(etiqueta: Label, texto: String) -> void:
 	if etiqueta != null:
