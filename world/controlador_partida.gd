@@ -3,6 +3,9 @@ extends Node3D
 const EscenaNpc: PackedScene = preload("res://entities/npc/npc.tscn")
 const TinteBiomasScript: GDScript = preload("res://world/tinte_biomas.gd")
 const PowerupSpawnerScript: GDScript = preload("res://world/powerup_spawner.gd")
+const MenuPrincipalScript: GDScript = preload("res://ui/menu_principal.gd")
+const MenuPausaScript: GDScript = preload("res://ui/menu_pausa.gd")
+const PantallaCargaScript: GDScript = preload("res://ui/pantalla_carga.gd")
 # Misma altura que los NPC de la arena original.
 const ALTURA_APARICION: float = 0.1
 # Tope de reintentos al buscar un punto lejos del jugador.
@@ -14,17 +17,26 @@ const MAX_INTENTOS_APARICION: int = 32
 # Autoload por ruta: `--check-only` valida el script sin cargar autoloads.
 var _game_manager: Node
 var _fin_mostrado: bool = false
+var _menu_principal: CanvasLayer
+var _menu_pausa: CanvasLayer
+var _pantalla_carga: CanvasLayer
+var _hud: CanvasLayer
 
 func _ready() -> void:
 	_instalar_tinte_biomas()
 	_instalar_powerups()
+	_instalar_menus()
 	_game_manager = get_node_or_null("/root/GameManager")
+	var arena: Node = get_parent()
+	if arena != null:
+		_hud = arena.get_node_or_null("HUD") as CanvasLayer
 	if pantalla_resultado == null:
 		pantalla_resultado = get_node_or_null("../PantallaResultado") as CanvasLayer
-	if _game_manager != null:
-		_game_manager.call("iniciar_partida")
 	_conectar_eventos()
-	_generar_horda()
+	if _game_manager != null and bool(_game_manager.call("esta_jugando")):
+		_generar_horda()
+	else:
+		_mostrar_menu()
 
 func _instalar_tinte_biomas() -> void:
 	var tinte: Node3D = TinteBiomasScript.new() as Node3D
@@ -35,6 +47,109 @@ func _instalar_powerups() -> void:
 	var powerups: Node3D = PowerupSpawnerScript.new() as Node3D
 	powerups.name = "Powerups"
 	add_child(powerups)
+
+func _instalar_menus() -> void:
+	_menu_principal = MenuPrincipalScript.new() as CanvasLayer
+	add_child(_menu_principal)
+	_menu_principal.connect("iniciar", _on_menu_iniciar)
+	_menu_principal.visible = false
+
+	_menu_pausa = MenuPausaScript.new() as CanvasLayer
+	add_child(_menu_pausa)
+	_menu_pausa.connect("reanudar", _reanudar)
+	_menu_pausa.connect("abandonar", _abandonar)
+	_menu_pausa.visible = false
+
+	_pantalla_carga = PantallaCargaScript.new() as CanvasLayer
+	add_child(_pantalla_carga)
+	_pantalla_carga.connect("terminada", _on_carga_terminada)
+	_pantalla_carga.visible = false
+
+func _mostrar_menu() -> void:
+	if _menu_principal == null:
+		return
+	_menu_principal.visible = true
+	_menu_pausa.visible = false
+	_pantalla_carga.visible = false
+	_ocultar_hud()
+	get_tree().paused = true
+	_liberar_mouse()
+
+func _on_menu_iniciar() -> void:
+	if _menu_principal != null:
+		_menu_principal.visible = false
+	if _pantalla_carga != null:
+		_pantalla_carga.visible = true
+	_ocultar_hud()
+	if _game_manager != null:
+		_game_manager.call("iniciar_partida")
+	_generar_horda()
+	if _pantalla_carga != null:
+		_pantalla_carga.call("iniciar", 0.8)
+	else:
+		get_tree().paused = false
+		_recapturar_mouse()
+
+func _on_carga_terminada() -> void:
+	if _pantalla_carga != null:
+		_pantalla_carga.visible = false
+	_mostrar_hud()
+	get_tree().paused = false
+	_recapturar_mouse()
+
+func _pausar() -> void:
+	if _menu_pausa == null or _menu_pausa.visible:
+		return
+	if _game_manager != null:
+		_game_manager.call("pausar")
+	_menu_pausa.visible = true
+	_ocultar_hud()
+	get_tree().paused = true
+	_liberar_mouse()
+
+func _reanudar() -> void:
+	if _menu_pausa != null:
+		_menu_pausa.visible = false
+	_mostrar_hud()
+	get_tree().paused = false
+	if _game_manager != null:
+		_game_manager.call("reanudar")
+	_recapturar_mouse()
+
+func _abandonar() -> void:
+	if _menu_pausa != null:
+		_menu_pausa.visible = false
+	_ocultar_hud()
+	get_tree().paused = false
+	if _game_manager != null:
+		_game_manager.call("reiniciar")
+	get_tree().reload_current_scene()
+
+func _recapturar_mouse() -> void:
+	if jugador != null:
+		var camara: Node = jugador.get_node_or_null("SpringArm3D")
+		if camara != null and camara.has_method("recapturar_mouse"):
+			camara.call("recapturar_mouse")
+			return
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+func _liberar_mouse() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+func _ocultar_hud() -> void:
+	if _hud != null:
+		_hud.visible = false
+
+func _mostrar_hud() -> void:
+	if _hud != null:
+		_hud.visible = true
+
+func _unhandled_input(evento: InputEvent) -> void:
+	if not evento.is_action_pressed("pausa"):
+		return
+	if _game_manager == null or not bool(_game_manager.call("esta_jugando")):
+		return
+	_pausar()
 
 func _conectar_eventos() -> void:
 	if jugador != null:
@@ -93,6 +208,7 @@ func _mostrar_resultado(es_victoria: bool) -> void:
 	if _fin_mostrado:
 		return
 	_fin_mostrado = true
+	_ocultar_hud()
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	if pantalla_resultado == null or _game_manager == null:
@@ -126,6 +242,15 @@ func _procesar_eventos(eventos: Array) -> void:
 				_game_manager.call("terminar_partida", true)
 			_mostrar_resultado(true)
 
+# Los NPC son los unicos CharacterBody3D hijos del controlador; el tinte,
+# powerups y menus no deben contar como vivos.
+func _contar_npcs() -> int:
+	var total: int = 0
+	for hijo in get_children():
+		if hijo is CharacterBody3D:
+			total += 1
+	return total
+
 # Top-up: conserva los NPC vivos (incluidos los que estan en cooldown) y agrega
 # solo la diferencia hasta el objetivo de la horda, con el tope absoluto.
 func _generar_horda() -> void:
@@ -133,7 +258,7 @@ func _generar_horda() -> void:
 		return
 	var config: Dictionary = _game_manager.call("configuracion_horda")
 	var objetivo: int = int(config["npc_por_horda"])
-	var vivos: int = get_child_count()
+	var vivos: int = _contar_npcs()
 	var faltan: int = objetivo - vivos
 	if faltan <= 0:
 		return

@@ -25,6 +25,14 @@ func iniciar_partida() -> void:
 func esta_jugando() -> bool:
 	return estado_partida == EstadoPartida.JUGANDO
 
+func pausar() -> void:
+	if estado_partida == EstadoPartida.JUGANDO:
+		estado_partida = EstadoPartida.PAUSADO
+
+func reanudar() -> void:
+	if estado_partida == EstadoPartida.PAUSADO:
+		estado_partida = EstadoPartida.JUGANDO
+
 func terminar_partida(es_victoria: bool = false) -> void:
 	victoria = es_victoria
 	estado_partida = EstadoPartida.TERMINADA

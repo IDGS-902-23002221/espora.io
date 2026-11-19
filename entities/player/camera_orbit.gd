@@ -21,10 +21,6 @@ func _notification(que: int) -> void:
 		_ignorar_siguiente_movimiento = true
 
 func _unhandled_input(evento: InputEvent) -> void:
-	if evento.is_action_pressed("pausa"):
-		_alternar_mouse()
-		return
-
 	if evento is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		var movimiento: InputEventMouseMotion = evento
 		if _ignorar_siguiente_movimiento:
@@ -38,13 +34,13 @@ func _unhandled_input(evento: InputEvent) -> void:
 			deg_to_rad(limite_pitch_max)
 		)
 
-func _alternar_mouse() -> void:
-	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	else:
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-		# Al recapturar, descartar el primer movimiento para que no salte.
-		_ignorar_siguiente_movimiento = true
+func recapturar_mouse() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	# Al recapturar, descartar el primer movimiento para que no salte.
+	_ignorar_siguiente_movimiento = true
+
+func liberar_mouse() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 # Regla pura: conserva la direccion del movimiento y recorta su longitud.
 static func limitar_delta(relativo: Vector2, maximo: float = DELTA_MAXIMO_MOUSE) -> Vector2:
