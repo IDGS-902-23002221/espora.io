@@ -26,6 +26,8 @@ var _en_reaparicion: bool = false
 var _tiempo_reaparicion: float = 0.0
 var _tiempo_escudo: float = 0.0
 var _escudo_visual: MeshInstance3D
+var _tiempo_velocidad: float = 0.0
+var _velocidad_visual: MeshInstance3D
 
 @onready var _visual: Node3D = $Visual
 @onready var _colision: CollisionShape3D = $CollisionShape3D
@@ -33,11 +35,13 @@ var _escudo_visual: MeshInstance3D
 func _ready() -> void:
 	_aplicar_tamanio()
 	_crear_escudo_visual()
+	_crear_velocidad_visual()
 	_puntos_dano.puntos_cambiados.connect(_on_puntos_cambiados)
 	_puntos_dano.absorbido.connect(_on_absorbido)
 
 func _physics_process(delta: float) -> void:
 	_actualizar_escudo(delta)
+	_actualizar_velocidad(delta)
 	# Durante la reaparicion queda oculto e inmovil: solo corre el cooldown.
 	if _en_reaparicion:
 		_avanzar_reaparicion(delta)
@@ -57,6 +61,7 @@ func _physics_process(delta: float) -> void:
 	)
 	var direccion: Vector3 = _direccion_relativa_a_camara(entrada)
 	var velocidad: float = Crecimiento.velocidad_por_tamanio(tamanio, GameConfig.VELOCIDAD_BASE_JUGADOR)
+	velocidad *= multiplicador_velocidad(_tiempo_velocidad)
 	velocity.x = direccion.x * velocidad
 	velocity.z = direccion.z * velocidad
 
@@ -119,6 +124,26 @@ func _actualizar_escudo(delta: float) -> void:
 	_tiempo_escudo = maxf(0.0, _tiempo_escudo - delta)
 	if _tiempo_escudo == 0.0 and _escudo_visual != null:
 		_escudo_visual.visible = false
+
+func activar_velocidad() -> void:
+	_tiempo_velocidad = GameConfig.DURACION_ESPORA_VELOZ
+	if _velocidad_visual != null:
+		_velocidad_visual.visible = true
+
+func _actualizar_velocidad(delta: float) -> void:
+	if _tiempo_velocidad <= 0.0:
+		return
+	_tiempo_velocidad = maxf(0.0, _tiempo_velocidad - delta)
+	if _velocidad_visual == null:
+		return
+	_velocidad_visual.visible = _tiempo_velocidad > 0.0
+	if _velocidad_visual.visible:
+		_velocidad_visual.rotation.y += delta * 6.0
+
+static func multiplicador_velocidad(tiempo: float) -> float:
+	if tiempo > 0.0:
+		return GameConfig.MULT_VELOCIDAD_ESPORA_VELOZ
+	return 1.0
 
 # Lo llama el NPC absorbido a traves de la referencia que guardo la espora.
 func absorber(tamanio_absorbido: float) -> void:
@@ -233,6 +258,28 @@ func _crear_escudo_visual() -> void:
 	_escudo_visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_escudo_visual.visible = false
 	_visual.add_child(_escudo_visual)
+
+func _crear_velocidad_visual() -> void:
+	_velocidad_visual = MeshInstance3D.new()
+	var toro: TorusMesh = TorusMesh.new()
+	toro.inner_radius = 0.55
+	toro.outer_radius = 0.85
+	toro.rings = 16
+	toro.ring_segments = 8
+	_velocidad_visual.mesh = toro
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	material.albedo_color = Color(0.55, 0.35, 1.0, 0.55)
+	material.emission_enabled = true
+	material.emission = Color(0.45, 0.2, 1.0)
+	material.emission_energy_multiplier = 2.0
+	_velocidad_visual.material_override = material
+	_velocidad_visual.position = Vector3(0.0, 0.15, 0.0)
+	_velocidad_visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_velocidad_visual.visible = false
+	_visual.add_child(_velocidad_visual)
 
 func _direccion_relativa_a_camara(entrada: Vector2) -> Vector3:
 	if camara == null or entrada.length_squared() == 0.0:
