@@ -29,7 +29,7 @@ const VELOCIDAD_BASE_JUGADOR: float = 6.0
 const PENALIZACION_VELOCIDAD_POR_TAMANIO: float = 0.08
 const VELOCIDAD_MINIMA_FRACCION: float = 0.60
 const MULT_VELOCIDAD_ESPORA_VELOZ: float = 1.40
-const DURACION_ESPORA_VELOZ: float = 4.0
+const DURACION_ESPORA_VELOZ: float = 10.0
 
 # Esporas y dano.
 const IMPACTOS_PARA_ABSORBER: int = 3
@@ -45,10 +45,10 @@ const NUTRIENTES_ACTIVOS_MAX: int = 100
 const INTERVALO_REAPARICION_NUTRIENTE: float = 0.5
 const INTERVALO_NUTRIENTE_DORADO_MIN: float = 15.0
 const INTERVALO_NUTRIENTE_DORADO_MAX: float = 25.0
-const INTERVALO_ESPORA_ESCUDO_MIN: float = 20.0
-const INTERVALO_ESPORA_ESCUDO_MAX: float = 30.0
-const INTERVALO_ESPORA_VELOZ_MIN: float = 40.0
-const INTERVALO_ESPORA_VELOZ_MAX: float = 60.0
+const INTERVALO_ESPORA_ESCUDO_MIN: float = 15.0
+const INTERVALO_ESPORA_ESCUDO_MAX: float = 25.0
+const INTERVALO_ESPORA_VELOZ_MIN: float = 25.0
+const INTERVALO_ESPORA_VELOZ_MAX: float = 40.0
 const NPC_MAX_ABSOLUTO: int = 24
 
 # Aparicion de NPC por horda (tamano base por multiplicador de horda).

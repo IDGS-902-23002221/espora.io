@@ -24,3 +24,21 @@ func test_maximo_un_escudo() -> void:
 	spawner.call("_process", 0.1)
 	assert_int(spawner.get_child_count()).is_equal(1)
 	spawner.free()
+
+func test_espera_velocidad_en_rango() -> void:
+	var spawner: Node3D = _crear_spawner()
+	for i in 20:
+		var espera: float = float(spawner.call("_siguiente_espera_velocidad"))
+		assert_float(espera).is_greater_equal(GameConfig.INTERVALO_ESPORA_VELOZ_MIN)
+		assert_float(espera).is_less_equal(GameConfig.INTERVALO_ESPORA_VELOZ_MAX)
+	spawner.free()
+
+func test_maximo_una_velocidad() -> void:
+	var spawner: Node3D = _crear_spawner()
+	spawner.set("_espera_velocidad", 0.0)
+	spawner.call("_process", 0.1)
+	assert_int(spawner.get_child_count()).is_equal(1)
+	assert_bool(bool(spawner.get("_velocidad_activa"))).is_true()
+	spawner.call("_process", 0.1)
+	assert_int(spawner.get_child_count()).is_equal(1)
+	spawner.free()
