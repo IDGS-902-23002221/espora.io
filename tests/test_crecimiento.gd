@@ -8,6 +8,13 @@ func test_crecer_respeta_el_tope() -> void:
 	assert_float(Crecimiento.crecer(GameConfig.TAMANIO_MAXIMO)).is_equal(GameConfig.TAMANIO_MAXIMO)
 	assert_float(Crecimiento.crecer(GameConfig.TAMANIO_MAXIMO - 0.01)).is_equal(GameConfig.TAMANIO_MAXIMO)
 
+func test_crecer_con_multiplicador_dorado() -> void:
+	var esperado: float = GameConfig.TAMANIO_INICIAL + GameConfig.CRECIMIENTO_NUTRIENTE * GameConfig.MULT_NUTRIENTE_DORADO
+	assert_float(Crecimiento.crecer(GameConfig.TAMANIO_INICIAL, GameConfig.MULT_NUTRIENTE_DORADO)).is_equal_approx(esperado, 0.0001)
+
+func test_crecer_dorado_respeta_el_tope() -> void:
+	assert_float(Crecimiento.crecer(GameConfig.TAMANIO_MAXIMO - 0.01, GameConfig.MULT_NUTRIENTE_DORADO)).is_equal(GameConfig.TAMANIO_MAXIMO)
+
 func test_velocidad_base_al_tamanio_inicial() -> void:
 	var base: float = GameConfig.VELOCIDAD_BASE_JUGADOR
 	assert_float(Crecimiento.velocidad_por_tamanio(GameConfig.TAMANIO_INICIAL, base)).is_equal_approx(base, 0.0001)

@@ -36,7 +36,7 @@ Por qué histéresis: sin ella, un NPC con proporción 1.0 ± ruido cambiaría d
 | `TAMANIO_INICIAL` | 1.0 | Jugador al empezar |
 | `TAMANIO_MAXIMO` | 6.0 | Tope para el jugador y los NPC |
 | `CRECIMIENTO_NUTRIENTE` | 0.03 | Aprox. 33 nutrientes para duplicar el tamaño |
-| `MULT_NUTRIENTE_DORADO` | 3.0 | Ya definido en el GDD (triplica) |
+| `MULT_NUTRIENTE_DORADO` | 7.0 | Ajustado por feedback (×7) |
 | `FRACCION_ABSORCION` | 0.25 | El que absorbe gana el 25 % del tamaño del absorbido |
 | `FRACCION_REAPARICION` | 0.60 | El absorbido reaparece con 60 % de su tamaño, nunca menos de `TAMANIO_INICIAL` |
 | `COOLDOWN_REAPARICION_JUGADOR` | 3.0 | Coincide con la cuenta regresiva 3-2-1 del storyboard 4 |
@@ -118,6 +118,8 @@ Arena circular, radio `RADIO_MAPA = 60`.
 El tamaño de aparición se sortea dentro del rango del bioma de su punto de aparición (tabla de arriba), se multiplica por `mult_tamanio_aparicion` de la horda y se limita a `TAMANIO_MAXIMO`. En la Cueva, un 10 % de los spawns son un roamer grande (`ROAMER_CUEVA_TAMANIO` × multiplicador, con tope).
 
 Los nutrientes se muestrean con radio ponderado por área × densidad de cada zona (`core/bioma.gd`): más densidad en el centro y menos en el borde. Implementado en 001.4.1.
+
+El nutriente dorado reutiliza la escena normal con `multiplicador_crecimiento = MULT_NUTRIENTE_DORADO` (×7) y material dorado; máximo uno activo. Puntaje: 10, igual que el normal (provisional).
 
 Los NPC también consumen nutrientes con la misma `CRECIMIENTO_NUTRIENTE` que el jugador (provisional). Cada NPC elige al hongo más cercano dentro de su radio (jugador u otro NPC) y le aplica la regla de tamaño: puede perseguirlo y dispararle, o huir. Las esporas de NPC pueden dañar a otros NPC y van con anticipación: se pueden esquivar moviéndose. Entre NPC se detectan a `FACTOR_RADIO_NPC_NPC` (0.40) del radio normal, para que el ecosistema no sea caótico. El cooldown de reaparición de NPC es `COOLDOWN_REAPARICION_NPC` (3.0 s).
 
