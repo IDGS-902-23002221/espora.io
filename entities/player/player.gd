@@ -24,16 +24,20 @@ var _puntos_dano: PuntosDano = PuntosDano.new()
 var _atacante_ultimo: Node3D
 var _en_reaparicion: bool = false
 var _tiempo_reaparicion: float = 0.0
+var _tiempo_escudo: float = 0.0
+var _escudo_visual: MeshInstance3D
 
 @onready var _visual: Node3D = $Visual
 @onready var _colision: CollisionShape3D = $CollisionShape3D
 
 func _ready() -> void:
 	_aplicar_tamanio()
+	_crear_escudo_visual()
 	_puntos_dano.puntos_cambiados.connect(_on_puntos_cambiados)
 	_puntos_dano.absorbido.connect(_on_absorbido)
 
 func _physics_process(delta: float) -> void:
+	_actualizar_escudo(delta)
 	# Durante la reaparicion queda oculto e inmovil: solo corre el cooldown.
 	if _en_reaparicion:
 		_avanzar_reaparicion(delta)
@@ -104,6 +108,18 @@ func consumir_nutriente(multiplicador: float = 1.0) -> void:
 	# Despues de actualizar el tamano, para que el maximo no quede atras.
 	nutriente_consumido.emit()
 
+func activar_escudo() -> void:
+	_tiempo_escudo = GameConfig.DURACION_ESPORA_ESCUDO
+	if _escudo_visual != null:
+		_escudo_visual.visible = true
+
+func _actualizar_escudo(delta: float) -> void:
+	if _tiempo_escudo <= 0.0:
+		return
+	_tiempo_escudo = maxf(0.0, _tiempo_escudo - delta)
+	if _tiempo_escudo == 0.0 and _escudo_visual != null:
+		_escudo_visual.visible = false
+
 # Lo llama el NPC absorbido a traves de la referencia que guardo la espora.
 func absorber(tamanio_absorbido: float) -> void:
 	tamanio = Absorcion.crecimiento_por_absorcion(tamanio, tamanio_absorbido)
@@ -117,8 +133,14 @@ func puntos_actuales() -> int:
 func esta_activo() -> bool:
 	return not _en_reaparicion
 
+# Regla pura para tests: el escudo activo ignora cualquier impacto.
+static func bloquea_impacto(tiempo_escudo: float) -> bool:
+	return tiempo_escudo > 0.0
+
 # Mismo umbral que el NPC. Reusa la proporcion de ReglaTamanio, ya existente.
 func recibir_impacto(tamanio_atacante: float, atacante: Node3D) -> void:
+	if bloquea_impacto(_tiempo_escudo):
+		return
 	if ReglaTamanio.proporcion(tamanio_atacante, tamanio) < GameConfig.UMBRAL_ATAQUE_ENTRADA:
 		return
 	# Guardar quien nos acerto: al vaciarnos, ese NPC crece.
@@ -189,6 +211,28 @@ func _aplicar_tamanio() -> void:
 	if _colision != null:
 		_colision.scale = Vector3.ONE * tamanio
 		_colision.position = Vector3(0.0, 0.8 * tamanio, 0.0)
+
+func _crear_escudo_visual() -> void:
+	_escudo_visual = MeshInstance3D.new()
+	var esfera: SphereMesh = SphereMesh.new()
+	esfera.radius = 1.0
+	esfera.height = 2.0
+	esfera.radial_segments = 16
+	esfera.rings = 8
+	_escudo_visual.mesh = esfera
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	material.albedo_color = Color(0.3, 1.0, 0.55, 0.22)
+	material.emission_enabled = true
+	material.emission = Color(0.1, 0.9, 0.35)
+	material.emission_energy_multiplier = 1.5
+	_escudo_visual.material_override = material
+	_escudo_visual.position = Vector3(0.0, 0.95, 0.0)
+	_escudo_visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_escudo_visual.visible = false
+	_visual.add_child(_escudo_visual)
 
 func _direccion_relativa_a_camara(entrada: Vector2) -> Vector3:
 	if camara == null or entrada.length_squared() == 0.0:

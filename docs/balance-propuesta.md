@@ -71,7 +71,7 @@ Si los NPC fueran más rápidos que el jugador desde el inicio, no se podría hu
 | `VELOCIDAD_ESPORA` | 14.0 | Alcance efectivo aprox. 49 unidades, menor que el diámetro de la arena |
 | `COOLDOWN_DISPARO_JUGADOR` | 0.6 | |
 | `TIEMPO_REGENERACION_PUNTO` | 4.0 | Segundos sin recibir impactos para recuperar 1 punto. También es la ventana entre impactos para que cuenten como "seguidos" (decidido) |
-| `DURACION_ESPORA_ESCUDO` | 5.0 | |
+| `DURACION_ESPORA_ESCUDO` | 10.0 | |
 
 **Indicador de daño (3 puntos):**
 - Punto lleno: color cian. Punto vaciado: gris oscuro.
@@ -106,8 +106,9 @@ Arena circular, radio `RADIO_MAPA = 60`.
 |---|---|---|
 | `NUTRIENTES_ACTIVOS_MAX` | 100 | Tope simultáneo; ajustar con el profiler |
 | `INTERVALO_REAPARICION_NUTRIENTE` | 0.5 | Un nutriente nuevo cada 0.5 s hasta el tope |
-| `INTERVALO_NUTRIENTE_DORADO` | 30 – 45 | Máximo uno activo |
-| `INTERVALO_ESPORA_ESCUDO` / `INTERVALO_ESPORA_VELOZ` | 40 – 60 | Máximo uno activo de cada tipo |
+| `INTERVALO_NUTRIENTE_DORADO` | 15 – 25 | Máximo uno activo |
+| `INTERVALO_ESPORA_ESCUDO` | 20 – 30 | Máximo uno activo |
+| `INTERVALO_ESPORA_VELOZ` | 40 – 60 | Máximo uno activo |
 | `NPC_MAX_ABSOLUTO` | 24 | Tope duro; **medir rendimiento en hardware sin GPU dedicada antes de subirlo** |
 | `TAMANIO_APARICION_NPC_MIN` | 0.6 | Referencia de la regla anterior (ya no se usa para el tamaño por bioma) |
 | `TAMANIO_APARICION_NPC_MAX` | 1.8 | Referencia de la regla anterior (ya no se usa para el tamaño por bioma) |
@@ -120,6 +121,8 @@ El tamaño de aparición se sortea dentro del rango del bioma de su punto de apa
 Los nutrientes se muestrean con radio ponderado por área × densidad de cada zona (`core/bioma.gd`): más densidad en el centro y menos en el borde. Implementado en 001.4.1.
 
 El nutriente dorado reutiliza la escena normal con `multiplicador_crecimiento = MULT_NUTRIENTE_DORADO` (×7) y material dorado; máximo uno activo. Puntaje: 10, igual que el normal (provisional).
+
+La espora escudo aparece como pickup (máximo uno activo, cada 20–30 s) y protege al jugador 10 s; no cambia la regla de tamaño.
 
 Los NPC también consumen nutrientes con la misma `CRECIMIENTO_NUTRIENTE` que el jugador (provisional). Cada NPC elige al hongo más cercano dentro de su radio (jugador u otro NPC) y le aplica la regla de tamaño: puede perseguirlo y dispararle, o huir. Las esporas de NPC pueden dañar a otros NPC y van con anticipación: se pueden esquivar moviéndose. Entre NPC se detectan a `FACTOR_RADIO_NPC_NPC` (0.40) del radio normal, para que el ecosistema no sea caótico. El cooldown de reaparición de NPC es `COOLDOWN_REAPARICION_NPC` (3.0 s).
 
