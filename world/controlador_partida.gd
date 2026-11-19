@@ -2,6 +2,7 @@ extends Node3D
 
 const EscenaNpc: PackedScene = preload("res://entities/npc/npc.tscn")
 const TinteBiomasScript: GDScript = preload("res://world/tinte_biomas.gd")
+const PowerupSpawnerScript: GDScript = preload("res://world/powerup_spawner.gd")
 # Misma altura que los NPC de la arena original.
 const ALTURA_APARICION: float = 0.1
 # Tope de reintentos al buscar un punto lejos del jugador.
@@ -16,6 +17,7 @@ var _fin_mostrado: bool = false
 
 func _ready() -> void:
 	_instalar_tinte_biomas()
+	_instalar_powerups()
 	_game_manager = get_node_or_null("/root/GameManager")
 	if pantalla_resultado == null:
 		pantalla_resultado = get_node_or_null("../PantallaResultado") as CanvasLayer
@@ -28,6 +30,11 @@ func _instalar_tinte_biomas() -> void:
 	var tinte: Node3D = TinteBiomasScript.new() as Node3D
 	tinte.name = "TinteBiomas"
 	add_child(tinte)
+
+func _instalar_powerups() -> void:
+	var powerups: Node3D = PowerupSpawnerScript.new() as Node3D
+	powerups.name = "Powerups"
+	add_child(powerups)
 
 func _conectar_eventos() -> void:
 	if jugador != null:
