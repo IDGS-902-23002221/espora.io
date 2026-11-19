@@ -286,8 +286,8 @@ func recibir_impacto(tamanio_atacante: float, atacante: Node3D) -> void:
 	_puntos_dano.recibir_impacto()
 
 # El NPC tambien come nutrientes: crece igual que el jugador.
-func consumir_nutriente() -> void:
-	tamanio = Crecimiento.crecer(tamanio)
+func consumir_nutriente(multiplicador: float = 1.0) -> void:
+	tamanio = Crecimiento.crecer(tamanio, multiplicador)
 	_aplicar_tamanio()
 
 # Lo llama el jugador absorbido; quien absorbe crece (regla congelada).

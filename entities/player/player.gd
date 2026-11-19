@@ -98,8 +98,8 @@ func _origen_disparo(direccion: Vector3) -> Vector3:
 static func direccion_disparo_horizontal(base_camara: Basis) -> Vector3:
 	return EsporaScript.direccion_horizontal(-base_camara.z)
 
-func consumir_nutriente() -> void:
-	tamanio = Crecimiento.crecer(tamanio)
+func consumir_nutriente(multiplicador: float = 1.0) -> void:
+	tamanio = Crecimiento.crecer(tamanio, multiplicador)
 	_aplicar_tamanio()
 	# Despues de actualizar el tamano, para que el maximo no quede atras.
 	nutriente_consumido.emit()
