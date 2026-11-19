@@ -85,4 +85,5 @@ func _on_reiniciar() -> void:
 	var gm: Node = get_node_or_null("/root/GameManager")
 	if gm != null:
 		gm.call("reiniciar")
+		gm.call("iniciar_partida")
 	get_tree().reload_current_scene()
