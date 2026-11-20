@@ -7,6 +7,8 @@ const MenuPrincipalScript: GDScript = preload("res://ui/menu_principal.gd")
 const MenuSkinsScript: GDScript = preload("res://ui/menu_skins.gd")
 const MenuPausaScript: GDScript = preload("res://ui/menu_pausa.gd")
 const PantallaCargaScript: GDScript = preload("res://ui/pantalla_carga.gd")
+const CinematicaScript: GDScript = preload("res://ui/cinematica.gd")
+const CartelasScript: GDScript = preload("res://core/cartelas.gd")
 # Misma altura que los NPC de la arena original.
 const ALTURA_APARICION: float = 0.1
 # Tope de reintentos al buscar un punto lejos del jugador.
@@ -22,12 +24,15 @@ var _menu_principal: CanvasLayer
 var _menu_skins: CanvasLayer
 var _menu_pausa: CanvasLayer
 var _pantalla_carga: CanvasLayer
+var _cinematica: CanvasLayer
+var _accion_cinematica: Callable
 var _hud: CanvasLayer
 
 func _ready() -> void:
 	_instalar_tinte_biomas()
 	_instalar_powerups()
 	_instalar_menus()
+	_instalar_cinematica()
 	_game_manager = get_node_or_null("/root/GameManager")
 	var arena: Node = get_parent()
 	if arena != null:
@@ -37,6 +42,10 @@ func _ready() -> void:
 	_conectar_eventos()
 	if _game_manager != null and bool(_game_manager.call("esta_jugando")):
 		_generar_horda()
+		_mostrar_acto_i()
+	elif _game_manager != null and not bool(_game_manager.get("apertura_mostrada")):
+		_game_manager.call("marcar_apertura_mostrada")
+		_mostrar_apertura()
 	else:
 		_mostrar_menu()
 
@@ -73,6 +82,12 @@ func _instalar_menus() -> void:
 	add_child(_pantalla_carga)
 	_pantalla_carga.connect("terminada", _on_carga_terminada)
 	_pantalla_carga.visible = false
+
+func _instalar_cinematica() -> void:
+	_cinematica = CinematicaScript.new() as CanvasLayer
+	add_child(_cinematica)
+	_cinematica.connect("terminada", _on_cinematica_terminada)
+	_cinematica.visible = false
 
 func _mostrar_menu() -> void:
 	if _menu_principal == null:
@@ -130,9 +145,35 @@ func _on_menu_iniciar() -> void:
 func _on_carga_terminada() -> void:
 	if _pantalla_carga != null:
 		_pantalla_carga.visible = false
+	_mostrar_acto_i()
+
+func _mostrar_apertura() -> void:
+	_mostrar_cinematica(CartelasScript.apertura(), _mostrar_menu)
+
+func _mostrar_acto_i() -> void:
+	_mostrar_cinematica(CartelasScript.acto_i(), _continuar_partida)
+
+func _continuar_partida() -> void:
 	_mostrar_hud()
 	get_tree().paused = false
 	_recapturar_mouse()
+
+func _mostrar_cinematica(escenas: Array, accion: Callable) -> void:
+	if _cinematica == null:
+		accion.call()
+		return
+	_accion_cinematica = accion
+	_ocultar_hud()
+	get_tree().paused = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_cinematica.visible = true
+	_cinematica.call("mostrar", escenas)
+
+func _on_cinematica_terminada() -> void:
+	var accion: Callable = _accion_cinematica
+	_accion_cinematica = Callable()
+	if accion.is_valid():
+		accion.call()
 
 func _pausar() -> void:
 	if _menu_pausa == null or _menu_pausa.visible:
@@ -245,9 +286,12 @@ func _mostrar_resultado(es_victoria: bool) -> void:
 	if _fin_mostrado:
 		return
 	_fin_mostrado = true
-	_ocultar_hud()
-	get_tree().paused = true
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_mostrar_cinematica(
+		CartelasScript.acto_iv(es_victoria),
+		func() -> void: _mostrar_resultado_final(es_victoria)
+	)
+
+func _mostrar_resultado_final(es_victoria: bool) -> void:
 	if pantalla_resultado == null or _game_manager == null:
 		return
 	var progreso: Puntaje = _game_manager.get("progreso")

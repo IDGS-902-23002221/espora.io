@@ -10,6 +10,8 @@ var progreso: Puntaje = Puntaje.new()
 var victoria: bool = false
 # Skin elegida para la sesion; no se persiste fuera de ella.
 var skin_jugador: String = "clasico"
+# La apertura se muestra una vez por proceso, no en cada recarga de escena.
+var apertura_mostrada: bool = false
 
 var indice_horda: int:
 	get:
@@ -26,6 +28,9 @@ func iniciar_partida() -> void:
 
 func esta_jugando() -> bool:
 	return estado_partida == EstadoPartida.JUGANDO
+
+func marcar_apertura_mostrada() -> void:
+	apertura_mostrada = true
 
 func pausar() -> void:
 	if estado_partida == EstadoPartida.JUGANDO:
