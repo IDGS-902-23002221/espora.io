@@ -44,3 +44,12 @@ func test_terminar_partida() -> void:
 	assert_int(gm.get("estado_partida")).is_equal(GameManagerScript.EstadoPartida.TERMINADA)
 	assert_bool(gm.get("victoria")).is_true()
 	gm.free()
+
+func test_apertura_solo_una_vez() -> void:
+	var gm: Node = _crear()
+	assert_bool(gm.get("apertura_mostrada")).is_false()
+	gm.call("marcar_apertura_mostrada")
+	assert_bool(gm.get("apertura_mostrada")).is_true()
+	gm.call("reiniciar")
+	assert_bool(gm.get("apertura_mostrada")).is_true()
+	gm.free()
