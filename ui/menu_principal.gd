@@ -1,6 +1,7 @@
 extends CanvasLayer
 
 signal iniciar
+signal skins
 
 const EstiloScript = preload("res://ui/estilo_ui.gd")
 const CAPA: int = 30
@@ -59,8 +60,9 @@ func _ready() -> void:
 	caja.add_child(boton_iniciar)
 	boton_iniciar.pressed.connect(_on_iniciar)
 
-	var skins: Button = _boton("Skins (próximamente)", "BotonSkins", true, false)
-	caja.add_child(skins)
+	var boton_skins: Button = _boton("Skins", "BotonSkins", false, false)
+	caja.add_child(boton_skins)
+	boton_skins.pressed.connect(_on_skins)
 
 	var salir: Button = _boton("Salir del juego", "BotonSalir", false, true)
 	caja.add_child(salir)
@@ -77,6 +79,9 @@ func _boton(texto: String, nombre: String, deshabilitado: bool, peligro: bool) -
 
 func _on_iniciar() -> void:
 	iniciar.emit()
+
+func _on_skins() -> void:
+	skins.emit()
 
 func _on_salir() -> void:
 	get_tree().quit()

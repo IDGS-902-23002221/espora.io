@@ -32,6 +32,11 @@ func test_reiniciar_vuelve_a_menu() -> void:
 	assert_bool(gm.call("esta_jugando")).is_false()
 	gm.free()
 
+func test_skin_por_defecto() -> void:
+	var gm: Node = _crear()
+	assert_str(str(gm.get("skin_jugador"))).is_equal("clasico")
+	gm.free()
+
 func test_terminar_partida() -> void:
 	var gm: Node = _crear()
 	gm.call("iniciar_partida")

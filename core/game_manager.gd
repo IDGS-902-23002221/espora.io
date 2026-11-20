@@ -8,6 +8,8 @@ var hordas: Hordas = Hordas.new()
 # Puntaje, intentos y estadisticas de la partida actual.
 var progreso: Puntaje = Puntaje.new()
 var victoria: bool = false
+# Skin elegida para la sesion; no se persiste fuera de ella.
+var skin_jugador: String = "clasico"
 
 var indice_horda: int:
 	get:

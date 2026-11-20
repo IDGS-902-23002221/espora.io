@@ -1,9 +1,14 @@
 extends CharacterBody3D
 
 const EsporaScript = preload("res://entities/spore/spore.gd")
+const EspeciesScript = preload("res://core/especies.gd")
 # Atacante simulado del debug: el doble supera siempre el umbral de 1.10
 # y 2.0 es exacto en binario, sin errores de redondeo.
 const MULT_ATACANTE_DEBUG: float = 2.0
+# El frente local del modelo es +Z; el desfase PI lo alinea con el frente de la camara.
+const DESFASE_MODELO: float = PI
+# Offset local del punto de disparo (al frente del modelo); se rota con el cuerpo.
+const POSICION_DISPARO: Vector3 = Vector3(0.0, 0.8, 1.2)
 
 signal puntos_cambiados(restantes: int)
 signal absorbido
@@ -28,6 +33,9 @@ var _tiempo_escudo: float = 0.0
 var _escudo_visual: MeshInstance3D
 var _tiempo_velocidad: float = 0.0
 var _velocidad_visual: MeshInstance3D
+var _material_cuerpo: StandardMaterial3D
+var _material_sombrero: StandardMaterial3D
+var _modelo_skin: Node3D
 
 @onready var _visual: Node3D = $Visual
 @onready var _colision: CollisionShape3D = $CollisionShape3D
@@ -36,6 +44,9 @@ func _ready() -> void:
 	_aplicar_tamanio()
 	_crear_escudo_visual()
 	_crear_velocidad_visual()
+	_crear_materiales_jugador()
+	_aplicar_skin_actual()
+	_crear_marcador_disparo()
 	_puntos_dano.puntos_cambiados.connect(_on_puntos_cambiados)
 	_puntos_dano.absorbido.connect(_on_absorbido)
 
@@ -67,6 +78,8 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	_mantener_en_arena()
+	_actualizar_orientacion()
+	_actualizar_animacion()
 	_actualizar_disparo(delta)
 
 func _actualizar_disparo(delta: float) -> void:
@@ -75,6 +88,29 @@ func _actualizar_disparo(delta: float) -> void:
 	# Mantener el boton dispara en automatico, pero nunca mas rapido que el cooldown.
 	if Input.is_action_pressed("disparar") and _tiempo_cooldown <= 0.0:
 		disparar()
+
+# El cuerpo entero sigue el yaw horizontal de la camara; nunca se inclina.
+func _actualizar_orientacion() -> void:
+	if camara == null or _visual == null or punto_disparo == null:
+		return
+	var yaw: float = yaw_cuerpo(-camara.global_basis.z, DESFASE_MODELO)
+	_visual.rotation.y = yaw
+	punto_disparo.rotation.y = yaw
+	punto_disparo.position = POSICION_DISPARO.rotated(Vector3.UP, yaw)
+
+# Yaw para que el frente local (-Z) del modelo apunte a la direccion.
+static func yaw_cuerpo(direccion: Vector3, desfase: float = 0.0) -> float:
+	var plana: Vector3 = Vector3(direccion.x, 0.0, direccion.z)
+	if plana.length_squared() == 0.0:
+		return desfase
+	plana = plana.normalized()
+	return atan2(-plana.x, -plana.z) + desfase
+
+# La skin camina cuando el jugador se mueve; quieta vuelve a Idle.
+func _actualizar_animacion() -> void:
+	if _modelo_skin == null:
+		return
+	EspeciesScript.animar_modelo(_modelo_skin, Vector2(velocity.x, velocity.z).length())
 
 func disparar() -> void:
 	if escena_espora == null or punto_disparo == null or camara == null:
@@ -280,6 +316,98 @@ func _crear_velocidad_visual() -> void:
 	_velocidad_visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_velocidad_visual.visible = false
 	_visual.add_child(_velocidad_visual)
+
+# Punto de disparo visible: una esfera chica emisiva en el offset del disparo.
+func _crear_marcador_disparo() -> void:
+	if punto_disparo == null:
+		return
+	var marcador: Node3D = Node3D.new()
+	marcador.name = "MarcadorDisparo"
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.no_depth_test = true
+	material.albedo_color = Color(0.5, 1.0, 1.0)
+	material.emission_enabled = true
+	material.emission = Color(0.3, 0.95, 1.0)
+	material.emission_energy_multiplier = 2.0
+
+	var barra_horizontal: MeshInstance3D = MeshInstance3D.new()
+	var caja_h: BoxMesh = BoxMesh.new()
+	caja_h.size = Vector3(0.28, 0.05, 0.05)
+	barra_horizontal.mesh = caja_h
+	barra_horizontal.material_override = material
+	barra_horizontal.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	marcador.add_child(barra_horizontal)
+
+	var barra_vertical: MeshInstance3D = MeshInstance3D.new()
+	var caja_v: BoxMesh = BoxMesh.new()
+	caja_v.size = Vector3(0.05, 0.28, 0.05)
+	barra_vertical.mesh = caja_v
+	barra_vertical.material_override = material
+	barra_vertical.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	marcador.add_child(barra_vertical)
+
+	punto_disparo.add_child(marcador)
+
+func _crear_materiales_jugador() -> void:
+	_material_cuerpo = StandardMaterial3D.new()
+	_material_sombrero = StandardMaterial3D.new()
+	var cuerpo: MeshInstance3D = _visual.get_node_or_null("Cuerpo") as MeshInstance3D
+	var sombrero: MeshInstance3D = _visual.get_node_or_null("Sombrero") as MeshInstance3D
+	if cuerpo != null:
+		cuerpo.material_override = _material_cuerpo
+	if sombrero != null:
+		sombrero.material_override = _material_sombrero
+
+func aplicar_skin(nombre: String) -> void:
+	if _material_cuerpo == null or _material_sombrero == null:
+		return
+	var datos: Dictionary = EspeciesScript.colores_skin(nombre)
+	_material_cuerpo.albedo_color = datos["cuerpo"]
+	_material_sombrero.albedo_color = datos["sombrero"]
+	_material_sombrero.emission_enabled = bool(datos["emision"])
+	if _material_sombrero.emission_enabled:
+		_material_sombrero.emission = datos["sombrero"]
+		_material_sombrero.emission_energy_multiplier = float(datos["energia"])
+	var luz: OmniLight3D = get_node_or_null("LuzJugador") as OmniLight3D
+	if luz != null:
+		luz.light_color = datos["luz"]
+		luz.light_energy = float(datos["luz_energia"])
+	_quitar_modelo_skin()
+	var ruta: String = EspeciesScript.modelo_para_skin(nombre)
+	if EspeciesScript.modelo_disponible(ruta):
+		var escena: PackedScene = load(ruta) as PackedScene
+		if escena != null:
+			var modelo: Node3D = escena.instantiate() as Node3D
+			_visual.add_child(modelo)
+			EspeciesScript.normalizar_modelo(modelo)
+			if bool(datos["emision"]):
+				EspeciesScript.aplicar_emision_modelo(modelo, datos["sombrero"], float(datos["energia"]))
+			EspeciesScript.reproducir_idle(modelo)
+			_modelo_skin = modelo
+			_ocultar_primitivas(true)
+			return
+	_ocultar_primitivas(false)
+
+func _quitar_modelo_skin() -> void:
+	if _modelo_skin != null:
+		_modelo_skin.queue_free()
+		_modelo_skin = null
+
+func _ocultar_primitivas(ocultar: bool) -> void:
+	var cuerpo: MeshInstance3D = _visual.get_node_or_null("Cuerpo") as MeshInstance3D
+	var sombrero: MeshInstance3D = _visual.get_node_or_null("Sombrero") as MeshInstance3D
+	if cuerpo != null:
+		cuerpo.visible = not ocultar
+	if sombrero != null:
+		sombrero.visible = not ocultar
+
+func _aplicar_skin_actual() -> void:
+	var skin: String = EspeciesScript.SKIN_CLASICO
+	var gm: Node = get_node_or_null("/root/GameManager")
+	if gm != null and gm.get("skin_jugador") != null:
+		skin = str(gm.get("skin_jugador"))
+	aplicar_skin(skin)
 
 func _direccion_relativa_a_camara(entrada: Vector2) -> Vector3:
 	if camara == null or entrada.length_squared() == 0.0:
