@@ -1,6 +1,7 @@
 extends CharacterBody3D
 
 const EsporaScript = preload("res://entities/spore/spore.gd")
+const EspeciesScript = preload("res://core/especies.gd")
 # Precargada: evita un @export manual que pueda quedar en null.
 const EscenaEspora: PackedScene = preload("res://entities/spore/spore.tscn")
 
@@ -21,6 +22,8 @@ const ALTURA_DISPARO: float = 0.8
 const INTERVALO_OBJETIVO: float = 0.5
 
 var tamanio: float = 1.0
+# Zona de bioma donde aparecio; define la especie visual.
+var zona: int = -1
 # Puntos de dano propios; se vacian con impactos de esporas validos.
 var _puntos_dano: PuntosDano = PuntosDano.new()
 var _estado: int = ReglaTamanio.EstadoTamanio.NEUTRAL
@@ -53,6 +56,7 @@ func _ready() -> void:
 	_game_manager = get_node_or_null("/root/GameManager")
 	tamanio = tamanio_inicial
 	_aplicar_tamanio()
+	_aplicar_especie()
 	# La etiqueta se refresca sola cuando cambian los puntos (impacto o regeneracion).
 	_puntos_dano.puntos_cambiados.connect(_on_puntos_cambiados)
 	# Al vaciarse los 3 puntos, el NPC absorbe/respawnea.
@@ -272,6 +276,23 @@ func _aplicar_tamanio() -> void:
 	if _colision != null:
 		_colision.scale = Vector3.ONE * tamanio
 		_colision.position = Vector3(0.0, 0.8 * tamanio, 0.0)
+
+func _aplicar_especie() -> void:
+	var zona_actual: int = zona if zona >= 0 else 0
+	var datos: Dictionary = EspeciesScript.colores_especie(zona_actual)
+	var cuerpo: MeshInstance3D = _visual.get_node_or_null("Cuerpo") as MeshInstance3D
+	var sombrero: MeshInstance3D = _visual.get_node_or_null("Sombrero") as MeshInstance3D
+	if cuerpo != null:
+		var material_cuerpo: StandardMaterial3D = StandardMaterial3D.new()
+		material_cuerpo.albedo_color = datos["cuerpo"]
+		cuerpo.material_override = material_cuerpo
+	if sombrero != null:
+		var material_sombrero: StandardMaterial3D = StandardMaterial3D.new()
+		material_sombrero.albedo_color = datos["sombrero"]
+		material_sombrero.emission_enabled = true
+		material_sombrero.emission = datos["sombrero"]
+		material_sombrero.emission_energy_multiplier = 0.15
+		sombrero.material_override = material_sombrero
 
 # Un impacto solo cuenta si el atacante supera el umbral de ataque de entrada.
 @warning_ignore("unused_parameter")

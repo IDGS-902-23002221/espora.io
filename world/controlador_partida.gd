@@ -4,6 +4,7 @@ const EscenaNpc: PackedScene = preload("res://entities/npc/npc.tscn")
 const TinteBiomasScript: GDScript = preload("res://world/tinte_biomas.gd")
 const PowerupSpawnerScript: GDScript = preload("res://world/powerup_spawner.gd")
 const MenuPrincipalScript: GDScript = preload("res://ui/menu_principal.gd")
+const MenuSkinsScript: GDScript = preload("res://ui/menu_skins.gd")
 const MenuPausaScript: GDScript = preload("res://ui/menu_pausa.gd")
 const PantallaCargaScript: GDScript = preload("res://ui/pantalla_carga.gd")
 # Misma altura que los NPC de la arena original.
@@ -18,6 +19,7 @@ const MAX_INTENTOS_APARICION: int = 32
 var _game_manager: Node
 var _fin_mostrado: bool = false
 var _menu_principal: CanvasLayer
+var _menu_skins: CanvasLayer
 var _menu_pausa: CanvasLayer
 var _pantalla_carga: CanvasLayer
 var _hud: CanvasLayer
@@ -52,7 +54,14 @@ func _instalar_menus() -> void:
 	_menu_principal = MenuPrincipalScript.new() as CanvasLayer
 	add_child(_menu_principal)
 	_menu_principal.connect("iniciar", _on_menu_iniciar)
+	_menu_principal.connect("skins", _mostrar_skins)
 	_menu_principal.visible = false
+
+	_menu_skins = MenuSkinsScript.new() as CanvasLayer
+	add_child(_menu_skins)
+	_menu_skins.connect("seleccionada", _on_skin_seleccionada)
+	_menu_skins.connect("volver", _volver_al_menu)
+	_menu_skins.visible = false
 
 	_menu_pausa = MenuPausaScript.new() as CanvasLayer
 	add_child(_menu_pausa)
@@ -69,11 +78,39 @@ func _mostrar_menu() -> void:
 	if _menu_principal == null:
 		return
 	_menu_principal.visible = true
+	_menu_skins.visible = false
 	_menu_pausa.visible = false
 	_pantalla_carga.visible = false
 	_ocultar_hud()
 	get_tree().paused = true
 	_liberar_mouse()
+
+func _mostrar_skins() -> void:
+	if _menu_principal != null:
+		_menu_principal.visible = false
+	if _menu_skins == null:
+		return
+	_menu_skins.visible = true
+	_menu_skins.call("marcar_actual", _skin_actual())
+
+func _volver_al_menu() -> void:
+	if _menu_skins != null:
+		_menu_skins.visible = false
+	if _menu_principal != null:
+		_menu_principal.visible = true
+
+func _on_skin_seleccionada(nombre: String) -> void:
+	if _game_manager != null:
+		_game_manager.set("skin_jugador", nombre)
+	if jugador != null and jugador.has_method("aplicar_skin"):
+		jugador.call("aplicar_skin", nombre)
+	if _menu_skins != null:
+		_menu_skins.call("marcar_actual", nombre)
+
+func _skin_actual() -> String:
+	if _game_manager != null and _game_manager.get("skin_jugador") != null:
+		return str(_game_manager.get("skin_jugador"))
+	return "clasico"
 
 func _on_menu_iniciar() -> void:
 	if _menu_principal != null:
@@ -276,10 +313,11 @@ func _crear_npc(multiplicador: float) -> void:
 	var tamanio: float = Bioma.tamanio_npc(zona, multiplicador, randf())
 	if Bioma.es_roamer(zona, randf()):
 		tamanio = Bioma.tamanio_roamer(multiplicador)
-	# Antes de entrar al arbol: el `_ready` del NPC usa tamanio_inicial.
+	# Antes de entrar al arbol: el `_ready` del NPC usa tamanio_inicial y zona.
 	npc.set("jugador", jugador)
 	npc.set("mostrar_estado", true)
 	npc.set("tamanio_inicial", tamanio)
+	npc.set("zona", zona)
 	npc.position = punto
 	add_child(npc)
 
