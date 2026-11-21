@@ -41,14 +41,14 @@ const DURACION_ESPORA_ESCUDO: float = 10.0
 
 # Mapa, nutrientes y topes.
 const RADIO_MAPA: float = 60.0
-const NUTRIENTES_ACTIVOS_MAX: int = 100
-const INTERVALO_REAPARICION_NUTRIENTE: float = 0.5
-const INTERVALO_NUTRIENTE_DORADO_MIN: float = 15.0
-const INTERVALO_NUTRIENTE_DORADO_MAX: float = 25.0
-const INTERVALO_ESPORA_ESCUDO_MIN: float = 15.0
-const INTERVALO_ESPORA_ESCUDO_MAX: float = 25.0
-const INTERVALO_ESPORA_VELOZ_MIN: float = 25.0
-const INTERVALO_ESPORA_VELOZ_MAX: float = 40.0
+const NUTRIENTES_ACTIVOS_MAX: int = 80
+const INTERVALO_REAPARICION_NUTRIENTE: float = 0.7
+const INTERVALO_NUTRIENTE_DORADO_MIN: float = 9.0
+const INTERVALO_NUTRIENTE_DORADO_MAX: float = 15.0
+const INTERVALO_ESPORA_ESCUDO_MIN: float = 9.0
+const INTERVALO_ESPORA_ESCUDO_MAX: float = 15.0
+const INTERVALO_ESPORA_VELOZ_MIN: float = 14.0
+const INTERVALO_ESPORA_VELOZ_MAX: float = 22.0
 const NPC_MAX_ABSOLUTO: int = 24
 
 # Aparicion de NPC por horda (tamano base por multiplicador de horda).
