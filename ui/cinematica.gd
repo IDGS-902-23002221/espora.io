@@ -101,6 +101,8 @@ func mostrar(escenas: Array) -> void:
 	_tiempo = 0.0
 	_activa = true
 	visible = true
+	if _particulas != null:
+		_particulas.emitting = true
 	_mostrar_beat()
 
 func _mostrar_beat() -> void:
@@ -150,6 +152,8 @@ func _process(delta: float) -> void:
 func _terminar() -> void:
 	_activa = false
 	visible = false
+	if _particulas != null:
+		_particulas.emitting = false
 	terminada.emit()
 
 func _on_boton() -> void:
@@ -176,7 +180,7 @@ func _crear_particulas() -> CPUParticles2D:
 	particulas.color = Color(0.35, 1.0, 1.0, 0.35)
 	particulas.position = Vector2(576.0, 324.0)
 	particulas.texture = _textura_particula()
-	particulas.emitting = true
+	particulas.emitting = false
 	return particulas
 
 func _textura_particula() -> GradientTexture2D:

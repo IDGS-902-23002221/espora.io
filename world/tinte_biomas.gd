@@ -20,7 +20,7 @@ func _crear_disco(nombre: String, radio: float, color: Color, altura: float) -> 
 	cilindro.top_radius = radio
 	cilindro.bottom_radius = radio
 	cilindro.height = ALTURA_DISCO
-	cilindro.radial_segments = 64
+	cilindro.radial_segments = 32
 	malla.mesh = cilindro
 	var material: StandardMaterial3D = StandardMaterial3D.new()
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED

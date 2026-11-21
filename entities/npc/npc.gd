@@ -57,6 +57,8 @@ func _ready() -> void:
 	tamanio = tamanio_inicial
 	_aplicar_tamanio()
 	_aplicar_especie()
+	if etiqueta_estado != null:
+		etiqueta_estado.visibility_range_end = 40.0
 	# La etiqueta se refresca sola cuando cambian los puntos (impacto o regeneracion).
 	_puntos_dano.puntos_cambiados.connect(_on_puntos_cambiados)
 	# Al vaciarse los 3 puntos, el NPC absorbe/respawnea.
