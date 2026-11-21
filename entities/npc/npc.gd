@@ -2,6 +2,7 @@ extends CharacterBody3D
 
 const EsporaScript = preload("res://entities/spore/spore.gd")
 const EspeciesScript = preload("res://core/especies.gd")
+const NombresScript = preload("res://core/nombres_npc.gd")
 # Precargada: evita un @export manual que pueda quedar en null.
 const EscenaEspora: PackedScene = preload("res://entities/spore/spore.tscn")
 
@@ -22,6 +23,8 @@ const ALTURA_DISPARO: float = 0.8
 const INTERVALO_OBJETIVO: float = 0.5
 
 var tamanio: float = 1.0
+# Nombre generico asignado al spawnear.
+var _nombre: String = ""
 # Zona de bioma donde aparecio; define la especie visual.
 var zona: int = -1
 # Puntos de dano propios; se vacian con impactos de esporas validos.
@@ -54,6 +57,7 @@ func _ready() -> void:
 	# Grupo para que los demas NPC puedan elegirlo como objetivo.
 	add_to_group("npcs")
 	_game_manager = get_node_or_null("/root/GameManager")
+	_nombre = NombresScript.nombre_aleatorio()
 	tamanio = tamanio_inicial
 	_aplicar_tamanio()
 	_aplicar_especie()
@@ -272,12 +276,17 @@ static func elegir_objetivo(posicion: Vector3, candidatos: Array, radio: float) 
 func esta_activo() -> bool:
 	return not _en_cooldown
 
+# Nombre generico asignado al spawnear; lo lee el ranking en vivo.
+func nombre_actual() -> String:
+	return _nombre
+
 func _aplicar_tamanio() -> void:
 	if _visual != null:
 		_visual.scale = Vector3.ONE * tamanio
 	if _colision != null:
 		_colision.scale = Vector3.ONE * tamanio
 		_colision.position = Vector3(0.0, 0.8 * tamanio, 0.0)
+	_actualizar_etiqueta()
 
 func _aplicar_especie() -> void:
 	var zona_actual: int = zona if zona >= 0 else 0
@@ -380,17 +389,10 @@ func _actualizar_etiqueta() -> void:
 	etiqueta_estado.visible = mostrar_estado
 	if not mostrar_estado:
 		return
-	var estado_texto: String
-	match _estado:
-		ReglaTamanio.EstadoTamanio.PERSEGUIR:
-			estado_texto = "PERSEGUIR"
-		ReglaTamanio.EstadoTamanio.HUIR:
-			estado_texto = "HUIR"
-		_:
-			estado_texto = "NEUTRAL"
-	# Incluye los puntos restantes para depuracion.
-	etiqueta_estado.text = "%s  %d/%d" % [
-		estado_texto, _puntos_dano.puntos, GameConfig.IMPACTOS_PARA_ABSORBER
+	# Nombre + tier de crecimiento actual + puntos de dano.
+	etiqueta_estado.text = "%s — %s  %d/%d" % [
+		_nombre, NombresScript.tier_para_tamanio(tamanio),
+		_puntos_dano.puntos, GameConfig.IMPACTOS_PARA_ABSORBER
 	]
 
 # Diferido: el impacto llega desde el Area de la espora; movemos al NPC fuera de ese callback.
