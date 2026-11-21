@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+const EstiloScript = preload("res://ui/estilo_ui.gd")
+
 # Referencia al jugador dueno de los puntos y los 3 controles que los dibujan.
 @export var jugador: Node3D
 @export var punto_1: ColorRect
@@ -10,9 +12,9 @@ extends CanvasLayer
 @export var etiqueta_intentos: Label
 
 # Colores del indicador de dano (docs/balance-propuesta.md, seccion 4).
-const COLOR_LLENO: Color = Color(0.0, 1.0, 1.0, 1.0)
-const COLOR_VACIO: Color = Color(0.13, 0.13, 0.13, 1.0)
-const COLOR_IMPACTO: Color = Color(0.9, 0.1, 0.1, 1.0)
+const COLOR_LLENO: Color = Color(0.52, 1.0, 0.78, 1.0)
+const COLOR_VACIO: Color = Color(0.05, 0.10, 0.07, 1.0)
+const COLOR_IMPACTO: Color = Color(0.92, 0.45, 0.36, 1.0)
 # Deuda anotada en el ticket: GameConfig esta en "No tocar"; este 0.2 s se
 # mueve a GameConfig en el ticket que lo permita.
 const DURACION_PARPADEO: float = 0.2
@@ -40,6 +42,7 @@ func _ready() -> void:
 	if jugador != null and jugador.has_method("puntos_actuales"):
 		_puntos = int(jugador.call("puntos_actuales"))
 		jugador.connect("puntos_cambiados", _on_puntos_cambiados)
+	_aplicar_estilo()
 	# Pintar siempre, aunque falten referencias: los controles nulos se ignoran.
 	_pintar()
 
@@ -53,6 +56,12 @@ func _process(delta: float) -> void:
 	# Terminado el parpadeo, el punto queda vacio (o lleno si ya regenero).
 	_indice_parpadeo = -1
 	_pintar()
+
+func _aplicar_estilo() -> void:
+	# Texto serif con contorno para leerse sobre el bosque.
+	for etiqueta in [etiqueta_horda, etiqueta_puntaje, etiqueta_intentos]:
+		if etiqueta != null:
+			EstiloScript.aplicar_texto(etiqueta as Label, 20, EstiloScript.TEXTO, 600)
 
 func _on_puntos_cambiados(restantes: int) -> void:
 	if restantes < _puntos:

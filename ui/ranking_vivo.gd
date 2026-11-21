@@ -68,7 +68,7 @@ func _construir() -> void:
 	titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	titulo.add_theme_font_override("font", EstiloScript.fuente(700))
 	titulo.add_theme_font_size_override("font_size", 18)
-	titulo.add_theme_color_override("font_color", Color(0.45, 1.0, 1.0))
+	titulo.add_theme_color_override("font_color", EstiloScript.ACENTO)
 	caja.add_child(titulo)
 
 	var subtitulo: Label = Label.new()
@@ -76,7 +76,7 @@ func _construir() -> void:
 	subtitulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	subtitulo.add_theme_font_override("font", EstiloScript.fuente(400))
 	subtitulo.add_theme_font_size_override("font_size", 11)
-	subtitulo.add_theme_color_override("font_color", Color(0.55, 0.75, 0.8, 0.8))
+	subtitulo.add_theme_color_override("font_color", EstiloScript.TEXTO_TENUE)
 	caja.add_child(subtitulo)
 
 	_filas = VBoxContainer.new()
@@ -87,8 +87,8 @@ func _construir() -> void:
 func _estilo_panel() -> StyleBoxFlat:
 	# Version compacta del panel general para no tapar la esquina jugable.
 	var s: StyleBoxFlat = EstiloScript.panel()
-	s.bg_color = Color(0.02, 0.05, 0.07, 0.88)
-	s.border_color = Color(0.2, 0.8, 0.9, 0.35)
+	s.bg_color = Color(0.012, 0.045, 0.032, 0.90)
+	s.border_color = EstiloScript.BORDE
 	s.content_margin_left = 14.0
 	s.content_margin_right = 14.0
 	s.content_margin_top = 10.0
@@ -122,7 +122,7 @@ func mostrar_entradas(entradas: Array) -> void:
 		_filas.remove_child(hijo)
 		hijo.queue_free()
 	if entradas.is_empty():
-		var vacio: Label = _etiqueta("Sin datos", Color(0.7, 0.8, 0.85), 0)
+		var vacio: Label = _etiqueta("Sin datos", EstiloScript.TEXTO_TENUE, 0)
 		vacio.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_filas.add_child(vacio)
 		return
@@ -135,7 +135,7 @@ func _fila(indice: int, datos: Dictionary) -> HBoxContainer:
 	fila.name = "FilaRanking%d" % (indice + 1)
 	fila.add_theme_constant_override("separation", 6)
 	var es_jugador: bool = bool(datos.get("es_jugador", false))
-	var color: Color = Color(1.0, 0.86, 0.35) if es_jugador else Color(0.82, 0.95, 1.0)
+	var color: Color = EstiloScript.DORADO if es_jugador else EstiloScript.TEXTO
 
 	var puesto: Label = _etiqueta("%d." % (indice + 1), color, 22)
 	fila.add_child(puesto)

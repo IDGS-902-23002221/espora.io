@@ -25,6 +25,10 @@ func _ready() -> void:
 	raiz.add_child(glow)
 	glow.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
+	var adorno: Control = EstiloScript.adorno_bosque()
+	raiz.add_child(adorno)
+	adorno.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
 	var centro: CenterContainer = CenterContainer.new()
 	raiz.add_child(centro)
 	centro.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -46,13 +50,11 @@ func _ready() -> void:
 	var subtitulo: Label = Label.new()
 	subtitulo.text = "Un hongo. Un claro. Una noche."
 	subtitulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	subtitulo.add_theme_font_override("font", EstiloScript.fuente(400))
-	subtitulo.add_theme_font_size_override("font_size", 18)
-	subtitulo.add_theme_color_override("font_color", Color(0.62, 0.78, 0.92))
+	EstiloScript.aplicar_texto(subtitulo, 18, EstiloScript.TEXTO_TENUE)
 	caja.add_child(subtitulo)
 
 	var linea: ColorRect = ColorRect.new()
-	linea.color = Color(0.2, 0.8, 0.9, 0.35)
+	linea.color = Color(EstiloScript.ACENTO_TENUE, 0.35)
 	linea.custom_minimum_size = Vector2(0.0, 2.0)
 	caja.add_child(linea)
 
