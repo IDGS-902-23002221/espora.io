@@ -69,7 +69,7 @@ ui/         menú, skins, pausa, carga, cinemática, HUD y resultado
 tests/      suite gdUnit4
 tools/      verify.ps1
 docs/       manual, arquitectura, historia, balance y releases
-assets/     modelos CC0 de skins
+assets/     modelos CC0 de skins y NPC
 builds/     artefactos de exportación
 addons/     gdUnit4 y Godot Editor MCP
 ```
@@ -91,6 +91,7 @@ Las capturas reales van en `docs/capturas/`: ver [instrucciones](docs/capturas/R
 ## Créditos
 
 - Modelos de skins: **Quaternius** (Mushnub, Mushnub Evolved, Mushroom King), CC0, vía [poly.pizza](https://poly.pizza).
+- Modelos de NPC: **Kenney** (Amanita) y **Quaternius** (Cubensis, Melena), CC0, vía [poly.pizza](https://poly.pizza).
 - Motor: [Godot Engine](https://godotengine.org) 4.7.2.
 - Tests: [gdUnit4](https://github.com/MikeSchulze/gdUnit4).
 - Resto de assets y código: proyecto ESPORA.io.

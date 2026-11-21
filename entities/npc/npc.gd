@@ -27,6 +27,8 @@ var tamanio: float = 1.0
 var _nombre: String = ""
 # Zona de bioma donde aparecio; define la especie visual.
 var zona: int = -1
+# Modelo 3D opcional de la especie; si falta, quedan las primitivas.
+var _modelo_especie: Node3D
 # Puntos de dano propios; se vacian con impactos de esporas validos.
 var _puntos_dano: PuntosDano = PuntosDano.new()
 var _estado: int = ReglaTamanio.EstadoTamanio.NEUTRAL
@@ -291,6 +293,37 @@ func _aplicar_tamanio() -> void:
 func _aplicar_especie() -> void:
 	var zona_actual: int = zona if zona >= 0 else 0
 	var datos: Dictionary = EspeciesScript.colores_especie(zona_actual)
+	if _cargar_modelo_especie(zona_actual, datos):
+		return
+	_colorear_primitivas(datos)
+
+# Intenta el .glb del bioma; devuelve false si no esta importado.
+func _cargar_modelo_especie(zona_actual: int, datos: Dictionary) -> bool:
+	var ruta: String = EspeciesScript.modelo_para_especie(zona_actual)
+	if not EspeciesScript.modelo_disponible(ruta):
+		return false
+	var escena: PackedScene = load(ruta) as PackedScene
+	if escena == null:
+		return false
+	var modelo: Node3D = escena.instantiate() as Node3D
+	if modelo == null:
+		return false
+	_modelo_especie = modelo
+	_visual.add_child(modelo)
+	# Misma altura que las primitivas para no alterar la lectura del mapa.
+	EspeciesScript.normalizar_modelo(modelo, 1.7)
+	EspeciesScript.aplicar_colores_modelo(modelo, datos["cuerpo"], datos["sombrero"])
+	_ocultar_primitivas(true)
+	return true
+
+func _ocultar_primitivas(ocultar: bool) -> void:
+	for nombre in ["Cuerpo", "Sombrero"]:
+		var nodo: Node3D = _visual.get_node_or_null(nombre) as Node3D
+		if nodo != null:
+			nodo.visible = not ocultar
+
+# Fallback: recolorea las mallas primitivas como antes.
+func _colorear_primitivas(datos: Dictionary) -> void:
 	var cuerpo: MeshInstance3D = _visual.get_node_or_null("Cuerpo") as MeshInstance3D
 	var sombrero: MeshInstance3D = _visual.get_node_or_null("Sombrero") as MeshInstance3D
 	if cuerpo != null:
