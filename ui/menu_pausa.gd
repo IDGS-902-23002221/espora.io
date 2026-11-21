@@ -25,6 +25,10 @@ func _ready() -> void:
 	raiz.add_child(glow)
 	glow.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
+	var adorno: Control = EstiloScript.adorno_bosque()
+	raiz.add_child(adorno)
+	adorno.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
 	var centro: CenterContainer = CenterContainer.new()
 	raiz.add_child(centro)
 	centro.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

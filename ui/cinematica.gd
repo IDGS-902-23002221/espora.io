@@ -38,6 +38,10 @@ func _ready() -> void:
 	raiz.add_child(glow)
 	glow.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
+	var adorno: Control = EstiloScript.adorno_bosque()
+	raiz.add_child(adorno)
+	adorno.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
 	_particulas = _crear_particulas()
 	raiz.add_child(_particulas)
 
@@ -66,9 +70,7 @@ func _ready() -> void:
 	_subtitulo = Label.new()
 	_subtitulo.name = "SubtituloCinematica"
 	_subtitulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_subtitulo.add_theme_font_override("font", EstiloScript.fuente(600))
-	_subtitulo.add_theme_font_size_override("font_size", 22)
-	_subtitulo.add_theme_color_override("font_color", Color(0.45, 1.0, 1.0))
+	EstiloScript.aplicar_texto(_subtitulo, 22, EstiloScript.ACENTO, 600)
 	caja.add_child(_subtitulo)
 
 	_texto = Label.new()
@@ -76,9 +78,7 @@ func _ready() -> void:
 	_texto.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_texto.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_texto.custom_minimum_size = Vector2(780.0, 0.0)
-	_texto.add_theme_font_override("font", EstiloScript.fuente(400))
-	_texto.add_theme_font_size_override("font_size", 20)
-	_texto.add_theme_color_override("font_color", Color(0.82, 0.92, 1.0))
+	EstiloScript.aplicar_texto(_texto, 20, EstiloScript.TEXTO)
 	caja.add_child(_texto)
 
 	_boton = Button.new()
@@ -119,7 +119,7 @@ func _aplicar_tinte(datos: Dictionary) -> void:
 	if _tinte != null:
 		_tinte.color = datos.get("tinte", Color(0.0, 0.0, 0.0, 0.0))
 	if _particulas != null:
-		_particulas.color = datos.get("particulas_color", Color(0.35, 1.0, 1.0, 0.35))
+		_particulas.color = datos.get("particulas_color", Color(0.45, 1.0, 0.70, 0.35))
 
 func _animar_entrada() -> void:
 	if _tween != null and _tween.is_valid():
@@ -177,7 +177,7 @@ func _crear_particulas() -> CPUParticles2D:
 	particulas.initial_velocity_max = 20.0
 	particulas.scale_amount_min = 0.04
 	particulas.scale_amount_max = 0.12
-	particulas.color = Color(0.35, 1.0, 1.0, 0.35)
+	particulas.color = Color(0.45, 1.0, 0.70, 0.35)
 	particulas.position = Vector2(576.0, 324.0)
 	particulas.texture = _textura_particula()
 	particulas.emitting = false

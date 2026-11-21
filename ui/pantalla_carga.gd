@@ -27,6 +27,10 @@ func _ready() -> void:
 	raiz.add_child(glow)
 	glow.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
+	var adorno: Control = EstiloScript.adorno_bosque()
+	raiz.add_child(adorno)
+	adorno.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
 	var centro: CenterContainer = CenterContainer.new()
 	raiz.add_child(centro)
 	centro.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -48,17 +52,15 @@ func _ready() -> void:
 	var subtitulo: Label = Label.new()
 	subtitulo.text = "Preparando el claro..."
 	subtitulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	subtitulo.add_theme_font_override("font", EstiloScript.fuente(400))
-	subtitulo.add_theme_font_size_override("font_size", 18)
-	subtitulo.add_theme_color_override("font_color", Color(0.62, 0.78, 0.92))
+	EstiloScript.aplicar_texto(subtitulo, 18, EstiloScript.TEXTO_TENUE)
 	caja.add_child(subtitulo)
 
 	_barra = ProgressBar.new()
 	_barra.custom_minimum_size = Vector2(360.0, 16.0)
 	_barra.show_percentage = false
 	_barra.value = 0.0
-	_barra.add_theme_stylebox_override("background", EstiloScript.barra(Color(0.05, 0.08, 0.12, 1.0)))
-	_barra.add_theme_stylebox_override("fill", EstiloScript.barra(Color(0.2, 0.8, 0.9, 1.0)))
+	_barra.add_theme_stylebox_override("background", EstiloScript.barra(Color(0.03, 0.08, 0.06, 1.0)))
+	_barra.add_theme_stylebox_override("fill", EstiloScript.barra(EstiloScript.ACENTO))
 	caja.add_child(_barra)
 
 func iniciar(duracion: float = 0.8) -> void:

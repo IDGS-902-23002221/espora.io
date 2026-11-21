@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+const EstiloScript = preload("res://ui/estilo_ui.gd")
+
 @export var etiqueta_titulo: Label
 @export var etiqueta_subtitulo: Label
 @export var etiqueta_puntaje: Label
@@ -16,6 +18,7 @@ func _ready() -> void:
 	_resolver_nodos()
 	if boton_reiniciar != null:
 		boton_reiniciar.pressed.connect(_on_reiniciar)
+	_aplicar_estilo()
 	visible = false
 
 # Si los @export no se asignaron, se resuelven por nombre.
@@ -34,6 +37,25 @@ func _resolver_nodos() -> void:
 		etiqueta_tiempo = get_node_or_null("Centro/LabelTiempo") as Label
 	if boton_reiniciar == null:
 		boton_reiniciar = get_node_or_null("Centro/ButtonReiniciar") as Button
+
+func _aplicar_estilo() -> void:
+	# El resultado nace de una escena: se estiliza por codigo sin tocar .tscn.
+	var fondo: ColorRect = get_node_or_null("Fondo") as ColorRect
+	if fondo != null:
+		fondo.color = Color(0.008, 0.025, 0.018, 0.80)
+	var adorno: Control = EstiloScript.adorno_bosque()
+	add_child(adorno)
+	adorno.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	move_child(adorno, 1)
+	if etiqueta_titulo != null:
+		EstiloScript.aplicar_titulo(etiqueta_titulo, 44)
+	if etiqueta_subtitulo != null:
+		EstiloScript.aplicar_texto(etiqueta_subtitulo, 22, EstiloScript.TEXTO_TENUE)
+	for etiqueta in [etiqueta_puntaje, etiqueta_absorbidos, etiqueta_tamanio, etiqueta_tiempo]:
+		if etiqueta != null:
+			EstiloScript.aplicar_texto(etiqueta as Label, 20, EstiloScript.TEXTO)
+	if boton_reiniciar != null:
+		EstiloScript.aplicar_boton(boton_reiniciar, false)
 
 func mostrar(victoria: bool, progreso: Puntaje) -> void:
 	var datos: Dictionary = ResultadoPartida.textos(

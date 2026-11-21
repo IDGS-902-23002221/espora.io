@@ -35,6 +35,10 @@ func _ready() -> void:
 	raiz.add_child(glow)
 	glow.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
+	var adorno: Control = EstiloScript.adorno_bosque()
+	raiz.add_child(adorno)
+	adorno.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
 	var centro: CenterContainer = CenterContainer.new()
 	raiz.add_child(centro)
 	centro.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -105,25 +109,19 @@ func _ready() -> void:
 	_etiqueta_nombre = Label.new()
 	_etiqueta_nombre.name = "EtiquetaSkin"
 	_etiqueta_nombre.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_etiqueta_nombre.add_theme_font_override("font", EstiloScript.fuente(600))
-	_etiqueta_nombre.add_theme_font_size_override("font_size", 26)
-	_etiqueta_nombre.add_theme_color_override("font_color", Color(0.45, 1.0, 1.0))
+	EstiloScript.aplicar_texto(_etiqueta_nombre, 26, EstiloScript.ACENTO, 600)
 	columna.add_child(_etiqueta_nombre)
 
 	_etiqueta_descripcion = Label.new()
 	_etiqueta_descripcion.name = "EtiquetaDescripcion"
 	_etiqueta_descripcion.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_etiqueta_descripcion.add_theme_font_override("font", EstiloScript.fuente(400))
-	_etiqueta_descripcion.add_theme_font_size_override("font_size", 16)
-	_etiqueta_descripcion.add_theme_color_override("font_color", Color(0.62, 0.78, 0.92))
+	EstiloScript.aplicar_texto(_etiqueta_descripcion, 16, EstiloScript.TEXTO_TENUE)
 	columna.add_child(_etiqueta_descripcion)
 
 	_etiqueta_indice = Label.new()
 	_etiqueta_indice.name = "EtiquetaIndice"
 	_etiqueta_indice.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_etiqueta_indice.add_theme_font_override("font", EstiloScript.fuente(400))
-	_etiqueta_indice.add_theme_font_size_override("font_size", 14)
-	_etiqueta_indice.add_theme_color_override("font_color", Color(0.45, 0.60, 0.72))
+	EstiloScript.aplicar_texto(_etiqueta_indice, 14, EstiloScript.TEXTO_TENUE)
 	columna.add_child(_etiqueta_indice)
 
 	var boton_siguiente: Button = _boton_flecha("▶", "BotonSiguiente")
