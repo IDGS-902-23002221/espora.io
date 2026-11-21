@@ -77,7 +77,7 @@ func _ready() -> void:
 	viewport.size = Vector2i(420, 260)
 	viewport.own_world_3d = true
 	viewport.transparent_bg = true
-	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	viewport.render_target_update_mode = SubViewport.UPDATE_WHEN_VISIBLE
 	contenedor.add_child(viewport)
 
 	var mundo: Node3D = Node3D.new()
@@ -249,6 +249,8 @@ func _modelo_fallback(datos: Dictionary) -> Node3D:
 	return raiz
 
 func _process(delta: float) -> void:
+	if not visible:
+		return
 	if _modelo_previa != null:
 		_modelo_previa.rotation.y += delta * 0.6
 

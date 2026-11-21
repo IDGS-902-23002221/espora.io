@@ -33,6 +33,7 @@ func _ready() -> void:
 	_instalar_powerups()
 	_instalar_menus()
 	_instalar_cinematica()
+	_ajustar_rendimiento()
 	_game_manager = get_node_or_null("/root/GameManager")
 	var arena: Node = get_parent()
 	if arena != null:
@@ -48,6 +49,17 @@ func _ready() -> void:
 		_mostrar_apertura()
 	else:
 		_mostrar_menu()
+
+func _ajustar_rendimiento() -> void:
+	var arena: Node = get_parent()
+	if arena == null:
+		return
+	var luna: DirectionalLight3D = arena.get_node_or_null("LuzLuna") as DirectionalLight3D
+	if luna != null:
+		luna.directional_shadow_max_distance = 50.0
+	var ambiente: WorldEnvironment = arena.get_node_or_null("WorldEnvironment") as WorldEnvironment
+	if ambiente != null and ambiente.environment != null:
+		ambiente.environment.fog_density = 0.002
 
 func _instalar_tinte_biomas() -> void:
 	var tinte: Node3D = TinteBiomasScript.new() as Node3D

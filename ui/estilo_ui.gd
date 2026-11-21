@@ -1,9 +1,18 @@
 extends RefCounted
 
+# Cache de fuentes y texturas: los menus se crean varias veces y no hace falta
+# reinstanciar SystemFont/GradientTexture2D en cada uno.
+static var _fuentes: Dictionary = {}
+static var _tex_fondo: GradientTexture2D
+static var _tex_glow: GradientTexture2D
+
 static func fuente(peso: int = 400) -> SystemFont:
+	if _fuentes.has(peso):
+		return _fuentes[peso] as SystemFont
 	var f: SystemFont = SystemFont.new()
 	f.font_names = PackedStringArray(["Segoe UI", "Arial", "sans-serif"])
 	f.font_weight = peso
+	_fuentes[peso] = f
 	return f
 
 static func aplicar_titulo(etiqueta: Label, tamano: int) -> void:
@@ -69,43 +78,45 @@ static func aplicar_boton(boton: Button, peligro: bool = false) -> void:
 	boton.add_theme_stylebox_override("disabled", _boton_base(Color(0.3, 0.3, 0.35, 0.6), Color(0.05, 0.05, 0.07, 0.8)))
 
 static func fondo_gradiente() -> TextureRect:
-	var gradiente: Gradient = Gradient.new()
-	gradiente.offsets = PackedFloat32Array([0.0, 0.55, 1.0])
-	gradiente.colors = PackedColorArray([
-		Color(0.01, 0.02, 0.06, 1.0),
-		Color(0.02, 0.06, 0.13, 1.0),
-		Color(0.08, 0.02, 0.14, 1.0),
-	])
-	var textura: GradientTexture2D = GradientTexture2D.new()
-	textura.gradient = gradiente
-	textura.width = 64
-	textura.height = 256
-	textura.fill_from = Vector2(0.0, 0.0)
-	textura.fill_to = Vector2(0.0, 1.0)
+	if _tex_fondo == null:
+		var gradiente: Gradient = Gradient.new()
+		gradiente.offsets = PackedFloat32Array([0.0, 0.55, 1.0])
+		gradiente.colors = PackedColorArray([
+			Color(0.01, 0.02, 0.06, 1.0),
+			Color(0.02, 0.06, 0.13, 1.0),
+			Color(0.08, 0.02, 0.14, 1.0),
+		])
+		_tex_fondo = GradientTexture2D.new()
+		_tex_fondo.gradient = gradiente
+		_tex_fondo.width = 64
+		_tex_fondo.height = 256
+		_tex_fondo.fill_from = Vector2(0.0, 0.0)
+		_tex_fondo.fill_to = Vector2(0.0, 1.0)
 	var rect: TextureRect = TextureRect.new()
-	rect.texture = textura
+	rect.texture = _tex_fondo
 	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	rect.stretch_mode = TextureRect.STRETCH_SCALE
 	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return rect
 
 static func glow_radial() -> TextureRect:
-	var gradiente: Gradient = Gradient.new()
-	gradiente.offsets = PackedFloat32Array([0.0, 0.55, 1.0])
-	gradiente.colors = PackedColorArray([
-		Color(0.2, 0.85, 0.95, 0.18),
-		Color(0.1, 0.4, 0.5, 0.05),
-		Color(0.0, 0.0, 0.0, 0.0),
-	])
-	var textura: GradientTexture2D = GradientTexture2D.new()
-	textura.gradient = gradiente
-	textura.width = 256
-	textura.height = 256
-	textura.fill = GradientTexture2D.FILL_RADIAL
-	textura.fill_from = Vector2(0.5, 0.5)
-	textura.fill_to = Vector2(1.0, 0.5)
+	if _tex_glow == null:
+		var gradiente: Gradient = Gradient.new()
+		gradiente.offsets = PackedFloat32Array([0.0, 0.55, 1.0])
+		gradiente.colors = PackedColorArray([
+			Color(0.2, 0.85, 0.95, 0.18),
+			Color(0.1, 0.4, 0.5, 0.05),
+			Color(0.0, 0.0, 0.0, 0.0),
+		])
+		_tex_glow = GradientTexture2D.new()
+		_tex_glow.gradient = gradiente
+		_tex_glow.width = 256
+		_tex_glow.height = 256
+		_tex_glow.fill = GradientTexture2D.FILL_RADIAL
+		_tex_glow.fill_from = Vector2(0.5, 0.5)
+		_tex_glow.fill_to = Vector2(1.0, 0.5)
 	var rect: TextureRect = TextureRect.new()
-	rect.texture = textura
+	rect.texture = _tex_glow
 	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	rect.stretch_mode = TextureRect.STRETCH_SCALE
 	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
