@@ -104,11 +104,11 @@ Arena circular, radio `RADIO_MAPA = 60`.
 
 | Constante | Valor propuesto | Notas |
 |---|---|---|
-| `NUTRIENTES_ACTIVOS_MAX` | 100 | Tope simultáneo; ajustar con el profiler |
-| `INTERVALO_REAPARICION_NUTRIENTE` | 0.5 | Un nutriente nuevo cada 0.5 s hasta el tope |
-| `INTERVALO_NUTRIENTE_DORADO` | 15 – 25 | Máximo uno activo |
-| `INTERVALO_ESPORA_ESCUDO` | 15 – 25 | Máximo uno activo |
-| `INTERVALO_ESPORA_VELOZ` | 25 – 40 | Máximo uno activo |
+| `NUTRIENTES_ACTIVOS_MAX` | 80 | Tope simultáneo; ajustado en 001.15 |
+| `INTERVALO_REAPARICION_NUTRIENTE` | 0.7 | Un nutriente nuevo cada 0.7 s hasta el tope |
+| `INTERVALO_NUTRIENTE_DORADO` | 9 – 15 | Máximo uno activo |
+| `INTERVALO_ESPORA_ESCUDO` | 9 – 15 | Máximo uno activo |
+| `INTERVALO_ESPORA_VELOZ` | 14 – 22 | Máximo uno activo |
 | `NPC_MAX_ABSOLUTO` | 24 | Tope duro; **medir rendimiento en hardware sin GPU dedicada antes de subirlo** |
 | `TAMANIO_APARICION_NPC_MIN` | 0.6 | Referencia de la regla anterior (ya no se usa para el tamaño por bioma) |
 | `TAMANIO_APARICION_NPC_MAX` | 1.8 | Referencia de la regla anterior (ya no se usa para el tamaño por bioma) |
@@ -120,11 +120,11 @@ El tamaño de aparición se sortea dentro del rango del bioma de su punto de apa
 
 Los nutrientes se muestrean con radio ponderado por área × densidad de cada zona (`core/bioma.gd`): más densidad en el centro y menos en el borde. Implementado en 001.4.1.
 
-El nutriente dorado reutiliza la escena normal con `multiplicador_crecimiento = MULT_NUTRIENTE_DORADO` (×7) y material dorado; máximo uno activo. Puntaje: 10, igual que el normal (provisional).
+El nutriente dorado reutiliza la escena normal con `multiplicador_crecimiento = MULT_NUTRIENTE_DORADO` (×7) y material dorado; aparece cada 9–15 s, máximo uno activo. Puntaje: 10, igual que el normal (provisional).
 
-La espora escudo aparece como pickup (máximo uno activo, cada 15–25 s) y protege al jugador 10 s; no cambia la regla de tamaño.
+La espora escudo aparece como pickup (máximo uno activo, cada 9–15 s) y protege al jugador 10 s; no cambia la regla de tamaño.
 
-La espora veloz aparece como pickup (máximo uno activo, cada 25–40 s) y da +40 % de velocidad durante 10 s; no cambia la regla de tamaño.
+La espora veloz aparece como pickup (máximo uno activo, cada 14–22 s) y da +40 % de velocidad durante 10 s; no cambia la regla de tamaño.
 
 Los NPC también consumen nutrientes con la misma `CRECIMIENTO_NUTRIENTE` que el jugador (provisional). Cada NPC elige al hongo más cercano dentro de su radio (jugador u otro NPC) y le aplica la regla de tamaño: puede perseguirlo y dispararle, o huir. Las esporas de NPC pueden dañar a otros NPC y van con anticipación: se pueden esquivar moviéndose. Entre NPC se detectan a `FACTOR_RADIO_NPC_NPC` (0.40) del radio normal, para que el ecosistema no sea caótico. El cooldown de reaparición de NPC es `COOLDOWN_REAPARICION_NPC` (3.0 s).
 
