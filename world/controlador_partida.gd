@@ -9,6 +9,7 @@ const MenuPausaScript: GDScript = preload("res://ui/menu_pausa.gd")
 const PantallaCargaScript: GDScript = preload("res://ui/pantalla_carga.gd")
 const CinematicaScript: GDScript = preload("res://ui/cinematica.gd")
 const CartelasScript: GDScript = preload("res://core/cartelas.gd")
+const RankingVivoScript: GDScript = preload("res://ui/ranking_vivo.gd")
 # Misma altura que los NPC de la arena original.
 const ALTURA_APARICION: float = 0.1
 # Tope de reintentos al buscar un punto lejos del jugador.
@@ -24,6 +25,7 @@ var _menu_principal: CanvasLayer
 var _menu_skins: CanvasLayer
 var _menu_pausa: CanvasLayer
 var _pantalla_carga: CanvasLayer
+var _ranking: CanvasLayer
 var _cinematica: CanvasLayer
 var _accion_cinematica: Callable
 var _hud: CanvasLayer
@@ -32,6 +34,7 @@ func _ready() -> void:
 	_instalar_tinte_biomas()
 	_instalar_powerups()
 	_instalar_menus()
+	_instalar_ranking()
 	_instalar_cinematica()
 	_ajustar_rendimiento()
 	_game_manager = get_node_or_null("/root/GameManager")
@@ -94,6 +97,13 @@ func _instalar_menus() -> void:
 	add_child(_pantalla_carga)
 	_pantalla_carga.connect("terminada", _on_carga_terminada)
 	_pantalla_carga.visible = false
+
+func _instalar_ranking() -> void:
+	_ranking = RankingVivoScript.new() as CanvasLayer
+	add_child(_ranking)
+	# El jugador se pasa al crear; los NPC se leen del grupo "npcs" al refrescar.
+	_ranking.call("configurar", jugador)
+	_ranking.visible = false
 
 func _instalar_cinematica() -> void:
 	_cinematica = CinematicaScript.new() as CanvasLayer
@@ -229,10 +239,14 @@ func _liberar_mouse() -> void:
 func _ocultar_hud() -> void:
 	if _hud != null:
 		_hud.visible = false
+	if _ranking != null:
+		_ranking.visible = false
 
 func _mostrar_hud() -> void:
 	if _hud != null:
 		_hud.visible = true
+	if _ranking != null:
+		_ranking.visible = true
 
 func _unhandled_input(evento: InputEvent) -> void:
 	if not evento.is_action_pressed("pausa"):
