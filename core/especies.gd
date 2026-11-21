@@ -11,6 +11,20 @@ const MODELO_MUSHNUB: String = "res://assets/skins/mushnub.glb"
 const MODELO_LUMINARIA: String = "res://assets/skins/mushnub_evolved.glb"
 const MODELO_REY: String = "res://assets/skins/mushroom_king.glb"
 
+# Modelos CC0 de NPC por bioma (poly.pizza).
+const MODELO_NPC_AMANITA: String = "res://assets/npcs/amanita.glb"
+const MODELO_NPC_CUBENSIS: String = "res://assets/npcs/cubensis.glb"
+const MODELO_NPC_MELENA: String = "res://assets/npcs/melena.glb"
+
+static func modelo_para_especie(zona: int) -> String:
+	match zona:
+		BiomaScript.Zona.BOSQUE:
+			return MODELO_NPC_AMANITA
+		BiomaScript.Zona.PANTANO:
+			return MODELO_NPC_CUBENSIS
+		_:
+			return MODELO_NPC_MELENA
+
 static func especie_para_zona(zona: int) -> String:
 	match zona:
 		BiomaScript.Zona.BOSQUE:
@@ -123,6 +137,26 @@ static func normalizar_modelo(modelo: Node3D, altura_objetivo: float = 1.7) -> v
 	var centro: Vector3 = caja.get_center()
 	modelo.scale = Vector3.ONE * factor
 	modelo.position = Vector3(-centro.x * factor, -caja.position.y * factor, -centro.z * factor)
+
+# Tinta el modelo con los colores de la especie sin perder la textura.
+static func aplicar_colores_modelo(modelo: Node3D, cuerpo: Color, sombrero: Color) -> void:
+	for malla in _mallas(modelo):
+		if malla.mesh == null:
+			continue
+		for i in malla.mesh.get_surface_count():
+			var material: Material = malla.get_active_material(i)
+			if material == null:
+				continue
+			var copia: BaseMaterial3D = material.duplicate() as BaseMaterial3D
+			if copia == null:
+				continue
+			var nombre: String = str(copia.resource_name).to_lower()
+			var color: Color = sombrero if ("light" in nombre or "cap" in nombre or "hat" in nombre) else cuerpo
+			copia.albedo_color = color
+			copia.emission_enabled = true
+			copia.emission = sombrero
+			copia.emission_energy_multiplier = 0.08
+			malla.set_surface_override_material(i, copia)
 
 static func aplicar_emision_modelo(modelo: Node3D, color: Color, energia: float) -> void:
 	for malla in _mallas(modelo):

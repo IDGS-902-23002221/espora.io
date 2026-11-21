@@ -88,6 +88,7 @@ La espora del jugador golpea NPC; la del NPC golpea jugador y otros NPC. El tira
 ## Assets
 
 - Skins CC0 de Quaternius en `assets/skins/`: `mushnub.glb`, `mushnub_evolved.glb`, `mushroom_king.glb`.
+- NPC CC0 en `assets/npcs/`: `amanita.glb` (Kenney), `cubensis.glb` y `melena.glb` (Quaternius).
 - Los `.glb` se importan desde el editor y generan `.import`; sin importación hay fallback a primitivas.
 - El resto del estilo es low-poly por código: primitivas, emisión y tintes.
 

@@ -32,6 +32,28 @@ func test_modelos_por_skin() -> void:
 	assert_str(EspeciesScript.modelo_para_skin(EspeciesScript.SKIN_LUMINARIA)).is_equal(EspeciesScript.MODELO_LUMINARIA)
 	assert_str(EspeciesScript.modelo_para_skin(EspeciesScript.SKIN_REY)).is_equal(EspeciesScript.MODELO_REY)
 
+func test_modelos_por_especie() -> void:
+	assert_str(EspeciesScript.modelo_para_especie(BiomaScript.Zona.BOSQUE)).is_equal(EspeciesScript.MODELO_NPC_AMANITA)
+	assert_str(EspeciesScript.modelo_para_especie(BiomaScript.Zona.PANTANO)).is_equal(EspeciesScript.MODELO_NPC_CUBENSIS)
+	assert_str(EspeciesScript.modelo_para_especie(BiomaScript.Zona.CUEVA)).is_equal(EspeciesScript.MODELO_NPC_MELENA)
+
+func test_modelo_npc_inexistente_no_disponible() -> void:
+	assert_bool(EspeciesScript.modelo_disponible("res://assets/npcs/no_existe.glb")).is_false()
+
+func test_colores_modelo_respetan_material() -> void:
+	var raiz: Node3D = Node3D.new()
+	var malla: MeshInstance3D = MeshInstance3D.new()
+	malla.mesh = BoxMesh.new()
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.albedo_color = Color.WHITE
+	malla.material_override = material
+	raiz.add_child(malla)
+	EspeciesScript.aplicar_colores_modelo(raiz, Color(0.1, 0.2, 0.3), Color(0.4, 0.5, 0.6))
+	var resultado: StandardMaterial3D = malla.get_surface_override_material(0) as StandardMaterial3D
+	assert_object(resultado).is_not_null()
+	assert_bool(resultado.albedo_color.is_equal_approx(Color(0.1, 0.2, 0.3))).is_true()
+	raiz.free()
+
 func test_animacion_por_velocidad() -> void:
 	assert_str(EspeciesScript.animacion_para_velocidad(0.0)).is_equal("Idle")
 	assert_str(EspeciesScript.animacion_para_velocidad(0.1)).is_equal("Idle")
