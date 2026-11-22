@@ -11,6 +11,8 @@ const EstiloScript = preload("res://ui/estilo_ui.gd")
 @export var boton_reiniciar: Button
 
 var _tween_entrada: Tween
+var _nombre: LineEdit
+var _boton_lobby: Button
 
 func _ready() -> void:
 	# Sigue respondiendo con el arbol pausado.
@@ -47,6 +49,7 @@ func _aplicar_estilo() -> void:
 	add_child(adorno)
 	adorno.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	move_child(adorno, 1)
+	_crear_panel()
 	if etiqueta_titulo != null:
 		EstiloScript.aplicar_titulo(etiqueta_titulo, 44)
 	if etiqueta_subtitulo != null:
@@ -56,6 +59,53 @@ func _aplicar_estilo() -> void:
 			EstiloScript.aplicar_texto(etiqueta as Label, 20, EstiloScript.TEXTO)
 	if boton_reiniciar != null:
 		EstiloScript.aplicar_boton(boton_reiniciar, false)
+
+# Envuelve los datos en un panel con fondo, como el resto de menus.
+func _crear_panel() -> void:
+	var centro_viejo: VBoxContainer = get_node_or_null("Centro") as VBoxContainer
+	if centro_viejo == null:
+		return
+	var centro: CenterContainer = CenterContainer.new()
+	add_child(centro)
+	centro.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+	var panel: PanelContainer = PanelContainer.new()
+	panel.name = "PanelResultado"
+	panel.custom_minimum_size = Vector2(560.0, 0.0)
+	panel.add_theme_stylebox_override("panel", EstiloScript.panel())
+	centro.add_child(panel)
+
+	var caja: VBoxContainer = VBoxContainer.new()
+	caja.add_theme_constant_override("separation", 12)
+	panel.add_child(caja)
+	for hijo in centro_viejo.get_children():
+		centro_viejo.remove_child(hijo)
+		caja.add_child(hijo)
+	centro_viejo.visible = false
+
+	_nombre = LineEdit.new()
+	_nombre.name = "NombreJugador"
+	_nombre.placeholder_text = "Tu nombre"
+	_nombre.max_length = 20
+	_nombre.custom_minimum_size = Vector2(320.0, 42.0)
+	_nombre.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_nombre.add_theme_font_override("font", EstiloScript.fuente(400))
+	_nombre.add_theme_font_size_override("font_size", 20)
+	_nombre.add_theme_color_override("font_color", EstiloScript.TEXTO)
+	_nombre.add_theme_color_override("caret_color", EstiloScript.ACENTO)
+	_nombre.text_changed.connect(_on_nombre_cambiado)
+	caja.add_child(_nombre)
+	# El nombre va antes del boton de jugar de nuevo.
+	caja.move_child(_nombre, maxi(0, caja.get_child_count() - 2))
+
+	_boton_lobby = Button.new()
+	_boton_lobby.name = "BotonLobby"
+	_boton_lobby.text = "Volver al lobby"
+	_boton_lobby.custom_minimum_size = Vector2(320.0, 52.0)
+	_boton_lobby.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	EstiloScript.aplicar_boton(_boton_lobby, false)
+	_boton_lobby.pressed.connect(_on_volver_lobby)
+	caja.add_child(_boton_lobby)
 
 func mostrar(victoria: bool, progreso: Puntaje) -> void:
 	var datos: Dictionary = ResultadoPartida.textos(
@@ -70,7 +120,11 @@ func mostrar(victoria: bool, progreso: Puntaje) -> void:
 	_asignar(etiqueta_tamanio, lineas[2])
 	_asignar(etiqueta_tiempo, lineas[3])
 	if boton_reiniciar != null:
-		boton_reiniciar.text = datos["boton"]
+		boton_reiniciar.text = "Jugar de nuevo"
+	if _nombre != null:
+		var gm: Node = get_node_or_null("/root/GameManager")
+		if gm != null:
+			_nombre.text = str(gm.get("nombre_jugador"))
 	visible = true
 	_animar_entrada()
 
@@ -80,7 +134,7 @@ func _animar_entrada() -> void:
 	var controles: Array[Control] = [
 		etiqueta_titulo, etiqueta_subtitulo, etiqueta_puntaje,
 		etiqueta_absorbidos, etiqueta_tamanio, etiqueta_tiempo,
-		boton_reiniciar,
+		_nombre, boton_reiniciar, _boton_lobby,
 	]
 	for control in controles:
 		if control == null:
@@ -102,10 +156,25 @@ func _asignar(etiqueta: Label, texto: String) -> void:
 	if etiqueta != null:
 		etiqueta.text = texto
 
+func _on_nombre_cambiado(texto: String) -> void:
+	var gm: Node = get_node_or_null("/root/GameManager")
+	if gm == null:
+		return
+	var limpio: String = texto.strip_edges().left(20)
+	gm.set("nombre_jugador", limpio if not limpio.is_empty() else "Jugador")
+
 func _on_reiniciar() -> void:
 	get_tree().paused = false
 	var gm: Node = get_node_or_null("/root/GameManager")
 	if gm != null:
 		gm.call("reiniciar")
 		gm.call("iniciar_partida")
+	get_tree().reload_current_scene()
+
+func _on_volver_lobby() -> void:
+	get_tree().paused = false
+	var gm: Node = get_node_or_null("/root/GameManager")
+	if gm != null:
+		gm.call("reiniciar")
+	# Sin iniciar_partida: al recargar, el controlador muestra el lobby.
 	get_tree().reload_current_scene()

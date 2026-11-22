@@ -1,6 +1,8 @@
 extends CanvasLayer
 
 const EstiloScript = preload("res://ui/estilo_ui.gd")
+const MiraScript = preload("res://ui/mira.gd")
+const VidasScript = preload("res://ui/vidas.gd")
 
 # Referencia al jugador dueno de los puntos y los 3 controles que los dibujan.
 @export var jugador: Node3D
@@ -26,8 +28,13 @@ var _tiempo_parpadeo: float = 0.0
 # Autoload por ruta y cache de la ultima horda pintada.
 var _game_manager: Node
 var _ultima_horda: int = -1
+var _mira: Control
+var _vidas: Control
+var _aviso: Label
+var _tiempo_aviso: float = 0.0
 
 func _ready() -> void:
+	add_to_group("hud")
 	_game_manager = get_node_or_null("/root/GameManager")
 	# Si los @export no se asignaron en el editor, se resuelven por nombre.
 	if etiqueta_horda == null:
@@ -39,15 +46,80 @@ func _ready() -> void:
 	_conectar_progreso()
 	_actualizar_horda()
 	_controles = [punto_1, punto_2, punto_3]
+	_ocultar_puntos_cuadrados()
 	if jugador != null and jugador.has_method("puntos_actuales"):
 		_puntos = int(jugador.call("puntos_actuales"))
 		jugador.connect("puntos_cambiados", _on_puntos_cambiados)
 	_aplicar_estilo()
+	_crear_mira()
+	_crear_vidas()
+	_crear_aviso()
 	# Pintar siempre, aunque falten referencias: los controles nulos se ignoran.
 	_pintar()
 
+func _crear_aviso() -> void:
+	_aviso = Label.new()
+	_aviso.visible = false
+	_aviso.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_aviso.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	_aviso.offset_left = -300.0
+	_aviso.offset_right = 300.0
+	_aviso.offset_top = -96.0
+	_aviso.offset_bottom = -58.0
+	EstiloScript.aplicar_texto(_aviso, 22, EstiloScript.DORADO, 600)
+	add_child(_aviso)
+
+func mostrar_aviso(texto: String) -> void:
+	if _aviso == null:
+		return
+	_aviso.text = texto
+	_aviso.visible = true
+	_tiempo_aviso = 1.6
+
+func _ocultar_puntos_cuadrados() -> void:
+	for control in _controles:
+		if control != null:
+			control.visible = false
+
+func _crear_vidas() -> void:
+	_vidas = VidasScript.new() as Control
+	_vidas.position = Vector2(16.0, 14.0)
+	add_child(_vidas)
+
+func _crear_mira() -> void:
+	_mira = MiraScript.new() as Control
+	_mira.visible = false
+	add_child(_mira)
+
+# Proyecta un punto del rumbo real del disparo al espacio de pantalla.
+func _actualizar_mira() -> void:
+	if _mira == null or jugador == null:
+		return
+	var camara: Camera3D = jugador.get("camara") as Camera3D
+	var origen: Node3D = jugador.get("punto_disparo") as Node3D
+	if camara == null or origen == null:
+		_mira.visible = false
+		return
+	var rumbo: Vector3 = -camara.global_basis.z
+	rumbo.y = 0.0
+	if rumbo.length_squared() < 0.0001:
+		_mira.visible = false
+		return
+	var objetivo: Vector3 = origen.global_position + rumbo.normalized() * 12.0
+	if camara.is_position_behind(objetivo):
+		_mira.visible = false
+		return
+	var pantalla: Vector2 = camara.unproject_position(objetivo)
+	if not get_viewport().get_visible_rect().has_point(pantalla):
+		_mira.visible = false
+		return
+	_mira.position = pantalla - _mira.size * 0.5
+	_mira.visible = true
+
 func _process(delta: float) -> void:
 	_actualizar_horda()
+	_actualizar_mira()
+	_actualizar_aviso(delta)
 	if _indice_parpadeo < 0:
 		return
 	_tiempo_parpadeo -= delta
@@ -62,6 +134,13 @@ func _aplicar_estilo() -> void:
 	for etiqueta in [etiqueta_horda, etiqueta_puntaje, etiqueta_intentos]:
 		if etiqueta != null:
 			EstiloScript.aplicar_texto(etiqueta as Label, 20, EstiloScript.TEXTO, 600)
+
+func _actualizar_aviso(delta: float) -> void:
+	if _aviso == null or not _aviso.visible:
+		return
+	_tiempo_aviso -= delta
+	if _tiempo_aviso <= 0.0:
+		_aviso.visible = false
 
 func _on_puntos_cambiados(restantes: int) -> void:
 	if restantes < _puntos:
@@ -114,3 +193,5 @@ func _pintar() -> void:
 			control.color = COLOR_LLENO
 		else:
 			control.color = COLOR_VACIO
+	if _vidas != null:
+		_vidas.call("mostrar", _puntos, _indice_parpadeo)

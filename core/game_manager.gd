@@ -10,6 +10,8 @@ var progreso: Puntaje = Puntaje.new()
 var victoria: bool = false
 # Skin elegida para la sesion; no se persiste fuera de ella.
 var skin_jugador: String = "clasico"
+# Nombre elegido en el resultado; por ahora dura la sesion.
+var nombre_jugador: String = "Jugador"
 # La apertura se muestra una vez por proceso, no en cada recarga de escena.
 var apertura_mostrada: bool = false
 

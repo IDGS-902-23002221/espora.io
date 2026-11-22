@@ -6,6 +6,9 @@ const BiomaScript = preload("res://core/bioma.gd")
 const SKIN_CLASICO: String = "clasico"
 const SKIN_LUMINARIA: String = "luminaria"
 const SKIN_REY: String = "rey"
+const SKIN_AMANITA: String = "amanita"
+const SKIN_CUBENSIS: String = "cubensis"
+const SKIN_MELENA: String = "melena"
 
 const MODELO_MUSHNUB: String = "res://assets/skins/mushnub.glb"
 const MODELO_LUMINARIA: String = "res://assets/skins/mushnub_evolved.glb"
@@ -72,6 +75,39 @@ static func colores_skin(skin: String) -> Dictionary:
 				"luz": Color(1.0, 0.80, 0.45),
 				"luz_energia": 0.35,
 			}
+		SKIN_AMANITA:
+			var bosque: Dictionary = colores_especie(BiomaScript.Zona.BOSQUE)
+			return {
+				"cuerpo": bosque["cuerpo"],
+				"sombrero": bosque["sombrero"],
+				"emision": false,
+				"energia": 0.0,
+				"luz": Color(1.0, 0.82, 0.62),
+				"luz_energia": 0.25,
+				"tintar_modelo": true,
+			}
+		SKIN_CUBENSIS:
+			var pantano: Dictionary = colores_especie(BiomaScript.Zona.PANTANO)
+			return {
+				"cuerpo": pantano["cuerpo"],
+				"sombrero": pantano["sombrero"],
+				"emision": false,
+				"energia": 0.0,
+				"luz": Color(0.85, 0.78, 0.55),
+				"luz_energia": 0.22,
+				"tintar_modelo": true,
+			}
+		SKIN_MELENA:
+			var cueva: Dictionary = colores_especie(BiomaScript.Zona.CUEVA)
+			return {
+				"cuerpo": cueva["cuerpo"],
+				"sombrero": cueva["sombrero"],
+				"emision": true,
+				"energia": 0.35,
+				"luz": Color(0.55, 0.62, 1.0),
+				"luz_energia": 0.3,
+				"tintar_modelo": true,
+			}
 		_:
 			return {
 				"cuerpo": Color(0.78, 0.68, 0.48),
@@ -83,7 +119,10 @@ static func colores_skin(skin: String) -> Dictionary:
 			}
 
 static func skins_disponibles() -> Array[String]:
-	return [SKIN_CLASICO, SKIN_LUMINARIA, SKIN_REY]
+	return [
+		SKIN_CLASICO, SKIN_LUMINARIA, SKIN_REY,
+		SKIN_AMANITA, SKIN_CUBENSIS, SKIN_MELENA,
+	]
 
 static func modelo_para_skin(skin: String) -> String:
 	match skin:
@@ -91,6 +130,12 @@ static func modelo_para_skin(skin: String) -> String:
 			return MODELO_LUMINARIA
 		SKIN_REY:
 			return MODELO_REY
+		SKIN_AMANITA:
+			return MODELO_NPC_AMANITA
+		SKIN_CUBENSIS:
+			return MODELO_NPC_CUBENSIS
+		SKIN_MELENA:
+			return MODELO_NPC_MELENA
 		_:
 			return MODELO_MUSHNUB
 

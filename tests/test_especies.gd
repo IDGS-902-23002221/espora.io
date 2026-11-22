@@ -18,7 +18,7 @@ func test_colores_por_zona_distintos() -> void:
 
 func test_skins_disponibles_y_colores() -> void:
 	var skins: Array[String] = EspeciesScript.skins_disponibles()
-	assert_int(skins.size()).is_equal(3)
+	assert_int(skins.size()).is_equal(6)
 	var clasico: Dictionary = EspeciesScript.colores_skin(EspeciesScript.SKIN_CLASICO)
 	var luminaria: Dictionary = EspeciesScript.colores_skin(EspeciesScript.SKIN_LUMINARIA)
 	var rey: Dictionary = EspeciesScript.colores_skin(EspeciesScript.SKIN_REY)
@@ -26,11 +26,18 @@ func test_skins_disponibles_y_colores() -> void:
 	assert_bool(luminaria["emision"]).is_true()
 	assert_bool(rey["emision"]).is_false()
 	assert_bool(clasico["sombrero"] != luminaria["sombrero"]).is_true()
+	# Las skins de NPC se tintan con los colores de su bioma.
+	assert_bool(EspeciesScript.colores_skin(EspeciesScript.SKIN_AMANITA)["tintar_modelo"]).is_true()
+	assert_bool(EspeciesScript.colores_skin(EspeciesScript.SKIN_CUBENSIS)["tintar_modelo"]).is_true()
+	assert_bool(EspeciesScript.colores_skin(EspeciesScript.SKIN_MELENA)["tintar_modelo"]).is_true()
 
 func test_modelos_por_skin() -> void:
 	assert_str(EspeciesScript.modelo_para_skin(EspeciesScript.SKIN_CLASICO)).is_equal(EspeciesScript.MODELO_MUSHNUB)
 	assert_str(EspeciesScript.modelo_para_skin(EspeciesScript.SKIN_LUMINARIA)).is_equal(EspeciesScript.MODELO_LUMINARIA)
 	assert_str(EspeciesScript.modelo_para_skin(EspeciesScript.SKIN_REY)).is_equal(EspeciesScript.MODELO_REY)
+	assert_str(EspeciesScript.modelo_para_skin(EspeciesScript.SKIN_AMANITA)).is_equal(EspeciesScript.MODELO_NPC_AMANITA)
+	assert_str(EspeciesScript.modelo_para_skin(EspeciesScript.SKIN_CUBENSIS)).is_equal(EspeciesScript.MODELO_NPC_CUBENSIS)
+	assert_str(EspeciesScript.modelo_para_skin(EspeciesScript.SKIN_MELENA)).is_equal(EspeciesScript.MODELO_NPC_MELENA)
 
 func test_modelos_por_especie() -> void:
 	assert_str(EspeciesScript.modelo_para_especie(BiomaScript.Zona.BOSQUE)).is_equal(EspeciesScript.MODELO_NPC_AMANITA)

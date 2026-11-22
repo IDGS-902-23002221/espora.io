@@ -2,6 +2,7 @@ extends CharacterBody3D
 
 const EsporaScript = preload("res://entities/spore/spore.gd")
 const EspeciesScript = preload("res://core/especies.gd")
+const FormasScript = preload("res://core/formas.gd")
 # Atacante simulado del debug: el doble supera siempre el umbral de 1.10
 # y 2.0 es exacto en binario, sin errores de redondeo.
 const MULT_ATACANTE_DEBUG: float = 2.0
@@ -32,7 +33,7 @@ var _tiempo_reaparicion: float = 0.0
 var _tiempo_escudo: float = 0.0
 var _escudo_visual: MeshInstance3D
 var _tiempo_velocidad: float = 0.0
-var _velocidad_visual: MeshInstance3D
+var _velocidad_visual: Node3D
 var _material_cuerpo: StandardMaterial3D
 var _material_sombrero: StandardMaterial3D
 var _modelo_skin: Node3D
@@ -46,17 +47,15 @@ func _ready() -> void:
 	_crear_velocidad_visual()
 	_crear_materiales_jugador()
 	_aplicar_skin_actual()
-	_crear_marcador_disparo()
 	_puntos_dano.puntos_cambiados.connect(_on_puntos_cambiados)
 	_puntos_dano.absorbido.connect(_on_absorbido)
 
 func _physics_process(delta: float) -> void:
 	_actualizar_escudo(delta)
 	_actualizar_velocidad(delta)
-	# Durante la reaparicion queda oculto e inmovil: solo corre el cooldown.
+	# Durante la reaparicion queda invisible e invulnerable, pero se puede mover.
 	if _en_reaparicion:
 		_avanzar_reaparicion(delta)
-		return
 
 	# La regeneracion de puntos corre en el jugador, igual que en los NPC.
 	_puntos_dano.avanzar_tiempo(delta)
@@ -200,6 +199,9 @@ static func bloquea_impacto(tiempo_escudo: float) -> bool:
 
 # Mismo umbral que el NPC. Reusa la proporcion de ReglaTamanio, ya existente.
 func recibir_impacto(tamanio_atacante: float, atacante: Node3D) -> void:
+	# Durante los 5 s de reaparicion no cuenta ningun impacto.
+	if _en_reaparicion:
+		return
 	if bloquea_impacto(_tiempo_escudo):
 		return
 	if ReglaTamanio.proporcion(tamanio_atacante, tamanio) < GameConfig.UMBRAL_ATAQUE_ENTRADA:
@@ -247,18 +249,31 @@ func _iniciar_reaparicion() -> void:
 	_tiempo_cooldown = 0.0
 	velocity = Vector3.ZERO
 	_visual.visible = false
-	# Diferido: seguimos dentro del callback del Area de la espora.
-	_colision.set_deferred("disabled", true)
+	_ocultar_luz_jugador(true)
+	# La colision sigue activa para poder moverse sin caer del mapa.
+	_colision.set_deferred("disabled", false)
 
 func _avanzar_reaparicion(delta: float) -> void:
 	_tiempo_reaparicion -= delta
 	if _tiempo_reaparicion > 0.0:
 		return
 	_en_reaparicion = false
-	# Puntos llenos: el HUD vuelve a 3 cian.
+	# Puntos llenos: el HUD vuelve a 3 honguitos.
 	_puntos_dano.reiniciar()
-	_visual.visible = true
+	_visual.visible = _puede_mostrar_visual()
+	_ocultar_luz_jugador(false)
 	_colision.set_deferred("disabled", false)
+
+func _ocultar_luz_jugador(ocultar: bool) -> void:
+	var luz: OmniLight3D = get_node_or_null("LuzJugador") as OmniLight3D
+	if luz != null:
+		luz.visible = not ocultar
+
+func _puede_mostrar_visual() -> bool:
+	var brazo: SpringArm3D = get_node_or_null("SpringArm3D") as SpringArm3D
+	if brazo != null and brazo.has_method("esta_en_primera_persona"):
+		return not bool(brazo.call("esta_en_primera_persona"))
+	return true
 
 func _reubicar_en_arena() -> void:
 	# Misma distribucion uniforme que el spawner y el NPC (calculo copiado).
@@ -272,6 +287,10 @@ func _aplicar_tamanio() -> void:
 	if _colision != null:
 		_colision.scale = Vector3.ONE * tamanio
 		_colision.position = Vector3(0.0, 0.8 * tamanio, 0.0)
+	# El pivote de la camara sube con el hongo para no mirar bajo el modelo.
+	var brazo: SpringArm3D = get_node_or_null("SpringArm3D") as SpringArm3D
+	if brazo != null and brazo.has_method("configurar_tamanio"):
+		brazo.call("configurar_tamanio", tamanio)
 
 func _crear_escudo_visual() -> void:
 	_escudo_visual = MeshInstance3D.new()
@@ -296,58 +315,35 @@ func _crear_escudo_visual() -> void:
 	_visual.add_child(_escudo_visual)
 
 func _crear_velocidad_visual() -> void:
-	_velocidad_visual = MeshInstance3D.new()
-	var toro: TorusMesh = TorusMesh.new()
-	toro.inner_radius = 0.55
-	toro.outer_radius = 0.85
-	toro.rings = 16
-	toro.ring_segments = 8
-	_velocidad_visual.mesh = toro
+	_velocidad_visual = Node3D.new()
+	var hoja: MeshInstance3D = MeshInstance3D.new()
+	hoja.mesh = FormasScript.hoja_malla()
+	hoja.material_override = _material_velocidad()
+	hoja.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_velocidad_visual.add_child(hoja)
+	for i in 3:
+		var estela: MeshInstance3D = MeshInstance3D.new()
+		var caja: BoxMesh = BoxMesh.new()
+		caja.size = Vector3(0.04, 0.02, 0.40 + i * 0.12)
+		estela.mesh = caja
+		estela.material_override = _material_velocidad()
+		estela.position = Vector3(0.0, 0.0, -0.28 - i * 0.10)
+		estela.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_velocidad_visual.add_child(estela)
+	_velocidad_visual.position = Vector3(0.0, 0.55, 0.0)
+	_velocidad_visual.visible = false
+	_visual.add_child(_velocidad_visual)
+
+func _material_velocidad() -> StandardMaterial3D:
 	var material: StandardMaterial3D = StandardMaterial3D.new()
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
-	material.albedo_color = Color(0.55, 0.35, 1.0, 0.55)
+	material.albedo_color = Color(0.4, 1.0, 0.7, 0.55)
 	material.emission_enabled = true
-	material.emission = Color(0.45, 0.2, 1.0)
-	material.emission_energy_multiplier = 2.0
-	_velocidad_visual.material_override = material
-	_velocidad_visual.position = Vector3(0.0, 0.15, 0.0)
-	_velocidad_visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_velocidad_visual.visible = false
-	_visual.add_child(_velocidad_visual)
-
-# Punto de disparo visible: una esfera chica emisiva en el offset del disparo.
-func _crear_marcador_disparo() -> void:
-	if punto_disparo == null:
-		return
-	var marcador: Node3D = Node3D.new()
-	marcador.name = "MarcadorDisparo"
-	var material: StandardMaterial3D = StandardMaterial3D.new()
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.no_depth_test = true
-	material.albedo_color = Color(0.5, 1.0, 1.0)
-	material.emission_enabled = true
-	material.emission = Color(0.3, 0.95, 1.0)
-	material.emission_energy_multiplier = 2.0
-
-	var barra_horizontal: MeshInstance3D = MeshInstance3D.new()
-	var caja_h: BoxMesh = BoxMesh.new()
-	caja_h.size = Vector3(0.28, 0.05, 0.05)
-	barra_horizontal.mesh = caja_h
-	barra_horizontal.material_override = material
-	barra_horizontal.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	marcador.add_child(barra_horizontal)
-
-	var barra_vertical: MeshInstance3D = MeshInstance3D.new()
-	var caja_v: BoxMesh = BoxMesh.new()
-	caja_v.size = Vector3(0.05, 0.28, 0.05)
-	barra_vertical.mesh = caja_v
-	barra_vertical.material_override = material
-	barra_vertical.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	marcador.add_child(barra_vertical)
-
-	punto_disparo.add_child(marcador)
+	material.emission = Color(0.15, 0.85, 0.55)
+	material.emission_energy_multiplier = 1.8
+	return material
 
 func _crear_materiales_jugador() -> void:
 	_material_cuerpo = StandardMaterial3D.new()
@@ -381,6 +377,8 @@ func aplicar_skin(nombre: String) -> void:
 			var modelo: Node3D = escena.instantiate() as Node3D
 			_visual.add_child(modelo)
 			EspeciesScript.normalizar_modelo(modelo)
+			if bool(datos.get("tintar_modelo", false)):
+				EspeciesScript.aplicar_colores_modelo(modelo, datos["cuerpo"], datos["sombrero"])
 			if bool(datos["emision"]):
 				EspeciesScript.aplicar_emision_modelo(modelo, datos["sombrero"], float(datos["energia"]))
 			EspeciesScript.reproducir_idle(modelo)

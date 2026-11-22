@@ -29,6 +29,7 @@ Los humanos se extinguieron. Bajo la tierra, la red de micelio despertó y ahora
 |---|---|
 | Mover | `WASD` |
 | Cámara | mouse |
+| Alternar 1.ª / 3.ª persona | `V` |
 | Disparar espora | clic izquierdo |
 | Pausa / saltar cinemática | `Esc` |
 | Debug: simular impacto | `F1` (solo build de depuración) |
@@ -92,6 +93,7 @@ Las capturas reales van en `docs/capturas/`: ver [instrucciones](docs/capturas/R
 
 - Modelos de skins: **Quaternius** (Mushnub, Mushnub Evolved, Mushroom King), CC0, vía [poly.pizza](https://poly.pizza).
 - Modelos de NPC: **Kenney** (Amanita) y **Quaternius** (Cubensis, Melena), CC0, vía [poly.pizza](https://poly.pizza).
+- Decoración: **Quaternius** (planta, arbusto con flores, rocas, pasto, pasto alto, flor), CC0, vía [poly.pizza](https://poly.pizza).
 - Motor: [Godot Engine](https://godotengine.org) 4.7.2.
 - Tests: [gdUnit4](https://github.com/MikeSchulze/gdUnit4).
 - Resto de assets y código: proyecto ESPORA.io.
