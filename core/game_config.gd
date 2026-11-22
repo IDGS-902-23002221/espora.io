@@ -31,6 +31,7 @@ const PUNTOS_EXCEDENTE_ABSORCION: int = 25
 
 # Presion de horda: si no disparas ni absorbes, perdes tamano.
 const PRESION_HORDA_ESPERA: float = 4.0
+const PRESION_HORDA_RETRASO_INICIAL: float = 10.0
 const PRESION_HORDA_DECRECIMIENTO: float = 0.02
 
 # Velocidad.
@@ -42,6 +43,8 @@ const DURACION_ESPORA_VELOZ: float = 10.0
 
 # Esporas y dano.
 const IMPACTOS_PARA_ABSORBER: int = 3
+# El jugador aguanta 2 impactos por hoja (1/2 + hoja completa = 6 golpes).
+const IMPACTOS_PARA_ABSORBER_JUGADOR: int = 6
 const VIDA_ESPORA: float = 3.5
 const VELOCIDAD_ESPORA: float = 14.0
 const COOLDOWN_DISPARO_JUGADOR: float = 0.6
@@ -52,12 +55,6 @@ const DURACION_ESPORA_ESCUDO: float = 10.0
 const RADIO_MAPA: float = 60.0
 const NUTRIENTES_ACTIVOS_MAX: int = 80
 const INTERVALO_REAPARICION_NUTRIENTE: float = 0.7
-const INTERVALO_NUTRIENTE_DORADO_MIN: float = 9.0
-const INTERVALO_NUTRIENTE_DORADO_MAX: float = 15.0
-const INTERVALO_ESPORA_ESCUDO_MIN: float = 9.0
-const INTERVALO_ESPORA_ESCUDO_MAX: float = 15.0
-const INTERVALO_ESPORA_VELOZ_MIN: float = 14.0
-const INTERVALO_ESPORA_VELOZ_MAX: float = 22.0
 const NPC_MAX_ABSOLUTO: int = 24
 
 # Aparicion de NPC por horda (tamano base por multiplicador de horda).

@@ -11,6 +11,16 @@ func test_tres_impactos_absorben() -> void:
 	assert_int(dano.puntos).is_equal(0)
 	assert_int(int(dano.esta_absorbido())).is_equal(1)
 
+func test_jugador_absorbe_con_seis_impactos() -> void:
+	var dano: PuntosDano = PuntosDano.new(GameConfig.IMPACTOS_PARA_ABSORBER_JUGADOR)
+	assert_int(dano.puntos).is_equal(6)
+	for i in 5:
+		dano.recibir_impacto()
+	assert_int(dano.puntos).is_equal(1)
+	dano.recibir_impacto()
+	assert_int(dano.puntos).is_equal(0)
+	assert_int(int(dano.esta_absorbido())).is_equal(1)
+
 func test_absorbido_emite_una_sola_vez() -> void:
 	var dano: PuntosDano = PuntosDano.new()
 	var emisiones: Array = []

@@ -499,8 +499,14 @@ func _crear_npc(multiplicador: float) -> void:
 		return
 	var punto: Vector3 = _punto_aparicion()
 	var zona: int = Bioma.zona_para_radio(Vector2(punto.x, punto.z).length())
+	var indice_horda: int = 0
+	if _game_manager != null:
+		indice_horda = int(_game_manager.get("indice_horda"))
 	var tamanio: float = Bioma.tamanio_npc(zona, multiplicador, randf())
-	if Bioma.es_roamer(zona, randf()):
+	if indice_horda == 0 and jugador != null:
+		# Primera horda: todos arrancan igualados al jugador.
+		tamanio = maxf(GameConfig.TAMANIO_INICIAL, float(jugador.get("tamanio")))
+	elif Bioma.es_roamer(zona, randf()):
 		tamanio = Bioma.tamanio_roamer(multiplicador)
 	# Antes de entrar al arbol: el `_ready` del NPC usa tamanio_inicial y zona.
 	npc.set("jugador", jugador)
