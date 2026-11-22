@@ -3,6 +3,7 @@ extends CanvasLayer
 # Panel de ranking en vivo, arriba a la derecha durante la partida.
 const RankingScript = preload("res://core/ranking.gd")
 const EstiloScript = preload("res://ui/estilo_ui.gd")
+const NombreScript = preload("res://core/nombre_jugador.gd")
 const CAPA: int = 12
 const INTERVALO: float = 0.4
 const MAX_FILAS: int = 5
@@ -104,7 +105,11 @@ func _refrescar() -> void:
 	var entradas: Array = []
 	# El jugador compite con los NPC; si no existe, solo se listan NPC.
 	if _jugador != null and is_instance_valid(_jugador):
-		entradas.append(RankingScript.entrada("Tú", _tamanio_de(_jugador), true))
+		var gm: Node = get_node_or_null("/root/GameManager")
+		var nombre_jugador: String = "Jugador"
+		if gm != null:
+			nombre_jugador = NombreScript.normalizar(str(gm.get("nombre_jugador")))
+		entradas.append(RankingScript.entrada(nombre_jugador, _tamanio_de(_jugador), true))
 	for nodo in get_tree().get_nodes_in_group("npcs"):
 		if nodo == null or not is_instance_valid(nodo):
 			continue

@@ -24,6 +24,12 @@ func sumar_horda() -> void:
 	puntos += GameConfig.PUNTOS_POR_HORDA_SUPERADA
 	puntaje_cambiado.emit(puntos)
 
+func sumar_excedente(cantidad: int) -> void:
+	if cantidad <= 0:
+		return
+	puntos += cantidad
+	puntaje_cambiado.emit(puntos)
+
 func perder_intento() -> void:
 	if intentos <= 0:
 		return
@@ -31,6 +37,12 @@ func perder_intento() -> void:
 	intentos_cambiados.emit(intentos)
 	if intentos == 0:
 		derrota.emit()
+
+func recuperar_intento() -> void:
+	if intentos >= GameConfig.INTENTOS_INICIALES:
+		return
+	intentos += 1
+	intentos_cambiados.emit(intentos)
 
 func registrar_tamanio(tamanio: float) -> void:
 	tamanio_maximo = maxf(tamanio_maximo, tamanio)

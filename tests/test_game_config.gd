@@ -12,6 +12,11 @@ func test_impactos_para_absorber() -> void:
 func test_reaparicion_invisible_cinco_segundos() -> void:
 	assert_float(GameConfig.COOLDOWN_REAPARICION_JUGADOR).is_equal(5.0)
 
+func test_tope_de_tamanio_sube_por_horda() -> void:
+	assert_float(GameConfig.maximo_horda(0)).is_equal(4.0)
+	assert_float(GameConfig.maximo_horda(2)).is_equal(6.0)
+	assert_float(GameConfig.maximo_horda(4)).is_equal(8.0)
+
 func test_vida_espora() -> void:
 	assert_float(GameConfig.VIDA_ESPORA).is_equal(3.5)
 

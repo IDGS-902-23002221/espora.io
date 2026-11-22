@@ -6,7 +6,7 @@ const DELTA_MAXIMO_MOUSE: float = 150.0
 const MARGEN_SPRING_ARM: float = 0.2
 const LONGITUD_BASE: float = 8.0
 const ALTURA_PIVOTE_MIN: float = 1.6
-const ALTURA_PIVOTE_MAX: float = 6.5
+const ALTURA_PIVOTE_MAX: float = 8.5
 # La camara nunca baja de esta altura: evita mirar bajo el piso.
 const ALTURA_SUELO: float = 0.25
 
@@ -85,7 +85,11 @@ func _aplicar_primera_persona() -> void:
 		position = Vector3(offset_hombro, altura_pivote_para(_tamanio), 0.0)
 		spring_length = LONGITUD_BASE
 	if _visual != null:
-		_visual.visible = not _primera_persona
+		var ocultar: bool = _primera_persona
+		var padre: Node = get_parent()
+		if padre != null and padre.has_method("esta_invisible") and bool(padre.call("esta_invisible")):
+			ocultar = true
+		_visual.visible = not ocultar
 	if _camara != null:
 		_camara.near = 0.08 if _primera_persona else 0.05
 

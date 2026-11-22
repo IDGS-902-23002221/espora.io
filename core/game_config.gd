@@ -10,7 +10,9 @@ const TIEMPO_MIN_ESTADO: float = 1.0
 
 # Tamano y crecimiento.
 const TAMANIO_INICIAL: float = 1.0
-const TAMANIO_MAXIMO: float = 6.0
+# Tope absoluto; el tope real sube por horda.
+const TAMANIO_MAXIMO: float = 8.0
+const TAMANIO_MAXIMO_POR_HORDA: Array[float] = [4.0, 5.0, 6.0, 7.0, 8.0]
 const CRECIMIENTO_NUTRIENTE: float = 0.03
 const MULT_NUTRIENTE_DORADO: float = 7.0
 const FRACCION_ABSORCION: float = 0.25
@@ -23,6 +25,13 @@ const INTENTOS_INICIALES: int = 3
 const PUNTOS_POR_NUTRIENTE: int = 10
 const PUNTOS_POR_ABSORCION: int = 100
 const PUNTOS_POR_HORDA_SUPERADA: int = 250
+# Al llegar al tamano maximo, el excedente se convierte en puntos.
+const PUNTOS_EXCEDENTE_NUTRIENTE: int = 5
+const PUNTOS_EXCEDENTE_ABSORCION: int = 25
+
+# Presion de horda: si no disparas ni absorbes, perdes tamano.
+const PRESION_HORDA_ESPERA: float = 4.0
+const PRESION_HORDA_DECRECIMIENTO: float = 0.02
 
 # Velocidad.
 const VELOCIDAD_BASE_JUGADOR: float = 6.0
@@ -85,6 +94,8 @@ const HORDAS: Array[Dictionary] = [
 		"cooldown_disparo_npc": 1.6,
 		"radio_deteccion_npc": 18.0,
 		"mult_tamanio_aparicion": 1.0,
+		"error_apuntado": 0.22,
+		"aviso": "La noche despierta",
 	},
 	{
 		"duracion": 90.0,
@@ -93,6 +104,8 @@ const HORDAS: Array[Dictionary] = [
 		"cooldown_disparo_npc": 1.4,
 		"radio_deteccion_npc": 20.0,
 		"mult_tamanio_aparicion": 1.1,
+		"error_apuntado": 0.16,
+		"aviso": "Apuntan mejor",
 	},
 	{
 		"duracion": 90.0,
@@ -101,6 +114,8 @@ const HORDAS: Array[Dictionary] = [
 		"cooldown_disparo_npc": 1.2,
 		"radio_deteccion_npc": 22.0,
 		"mult_tamanio_aparicion": 1.2,
+		"error_apuntado": 0.11,
+		"aviso": "Más agresivos",
 	},
 	{
 		"duracion": 90.0,
@@ -109,6 +124,8 @@ const HORDAS: Array[Dictionary] = [
 		"cooldown_disparo_npc": 1.0,
 		"radio_deteccion_npc": 25.0,
 		"mult_tamanio_aparicion": 1.3,
+		"error_apuntado": 0.07,
+		"aviso": "Cazan en grupo",
 	},
 	{
 		"duracion": 90.0,
@@ -117,5 +134,12 @@ const HORDAS: Array[Dictionary] = [
 		"cooldown_disparo_npc": 0.9,
 		"radio_deteccion_npc": 28.0,
 		"mult_tamanio_aparicion": 1.4,
+		"error_apuntado": 0.035,
+		"aviso": "Última horda",
 	},
 ]
+
+static func maximo_horda(indice: int) -> float:
+	if indice < 0 or indice >= TAMANIO_MAXIMO_POR_HORDA.size():
+		return TAMANIO_MAXIMO
+	return TAMANIO_MAXIMO_POR_HORDA[indice]

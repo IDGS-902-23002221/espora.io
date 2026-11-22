@@ -34,7 +34,9 @@ Por qué histéresis: sin ella, un NPC con proporción 1.0 ± ruido cambiaría d
 | Constante | Valor propuesto | Notas |
 |---|---|---|
 | `TAMANIO_INICIAL` | 1.0 | Jugador al empezar |
-| `TAMANIO_MAXIMO` | 6.0 | Tope para el jugador y los NPC |
+| `TAMANIO_MAXIMO` | 8.0 | Tope absoluto; el jugador sube 4→5→6→7→8 por horda |
+| `PRESION_HORDA_ESPERA` | 4.0 | Segundos sin disparar/absorber antes de perder tamaño |
+| `PRESION_HORDA_DECRECIMIENTO` | 0.02 | Tamaño perdido por segundo en presión |
 | `CRECIMIENTO_NUTRIENTE` | 0.03 | Aprox. 33 nutrientes para duplicar el tamaño |
 | `MULT_NUTRIENTE_DORADO` | 7.0 | Ajustado por feedback (×7) |
 | `FRACCION_ABSORCION` | 0.25 | El que absorbe gana el 25 % del tamaño del absorbido |
@@ -89,6 +91,8 @@ Si los NPC fueran más rápidos que el jugador desde el inicio, no se podría hu
 | `PUNTOS_POR_NUTRIENTE` | 10 | Puntos por nutriente consumido |
 | `PUNTOS_POR_ABSORCION` | 100 | Puntos por absorber un NPC |
 | `PUNTOS_POR_HORDA_SUPERADA` | 250 | Puntos al terminar cada horda (incluida la 5.ª) |
+| `PUNTOS_EXCEDENTE_NUTRIENTE` | 5 | Extra al comer en tamaño máximo |
+| `PUNTOS_EXCEDENTE_ABSORCION` | 25 | Extra al absorber en tamaño máximo |
 
 ---
 
@@ -132,7 +136,7 @@ Los NPC también consumen nutrientes con la misma `CRECIMIENTO_NUTRIENTE` que el
 
 ## 6. Hordas (propuesta pendiente de confirmación)
 
-La noche se divide en **5 hordas de 90 s**, con 5 s de pausa entre una y otra (5 × 90 s + 4 pausas × 5 s = 470 s, aprox. 7.8 min, dentro del objetivo de 5–10 min). Al terminar la horda 5 amanece y la partida termina. **El tamaño del jugador se conserva entre hordas.** Como el jugador no tiene vidas, el fracaso no es un game over: es reaparecer más pequeño y perder tiempo y tamaño. El resultado final se mide por tamaño máximo, absorciones y tiempo.
+La noche se divide en **5 hordas de 90 s**, con 5 s de pausa entre una y otra. Cada horda recibe refuerzos a 1/3 y 2/3 del tiempo y el HUD muestra el countdown. Al superar una horda se recupera 1 hoja si el jugador está por debajo de 3. **El tamaño del jugador se conserva entre hordas.** El resultado final se mide por tamaño máximo, absorciones y tiempo.
 
 | Constante | Horda 1 | Horda 2 | Horda 3 | Horda 4 | Horda 5 |
 |---|---|---|---|---|---|

@@ -28,6 +28,11 @@ func test_horda_suma() -> void:
 	p.sumar_horda()
 	assert_int(p.puntos).is_equal(GameConfig.PUNTOS_POR_HORDA_SUPERADA)
 
+func test_excedente_en_tamano_maximo() -> void:
+	var p: Puntaje = Puntaje.new()
+	p.sumar_excedente(GameConfig.PUNTOS_EXCEDENTE_NUTRIENTE)
+	assert_int(p.puntos).is_equal(GameConfig.PUNTOS_EXCEDENTE_NUTRIENTE)
+
 func test_perder_intento_descuenta() -> void:
 	var p: Puntaje = Puntaje.new()
 	var restantes: Array = []
@@ -56,6 +61,14 @@ func test_no_baja_de_cero_ni_emite_dos_derrotas() -> void:
 		p.perder_intento()
 	assert_int(p.intentos).is_equal(0)
 	assert_array(derrotas).has_size(1)
+
+func test_recuperar_intento_respeta_el_maximo() -> void:
+	var p: Puntaje = Puntaje.new()
+	p.perder_intento()
+	p.recuperar_intento()
+	assert_int(p.intentos).is_equal(GameConfig.INTENTOS_INICIALES)
+	p.recuperar_intento()
+	assert_int(p.intentos).is_equal(GameConfig.INTENTOS_INICIALES)
 
 func test_reiniciar_resetea_todo() -> void:
 	var p: Puntaje = Puntaje.new()

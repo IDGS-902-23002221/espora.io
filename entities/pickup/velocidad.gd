@@ -3,8 +3,8 @@ extends Area3D
 signal recogido
 
 const FormasScript = preload("res://core/formas.gd")
+const AuraScript = preload("res://core/aura.gd")
 
-var _base_y: float = 0.0
 var _tiempo: float = 0.0
 
 func _ready() -> void:
@@ -14,13 +14,12 @@ func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 	_crear_colision()
 	_crear_malla()
-	_base_y = position.y
 	_tiempo = randf() * TAU
 
 func _process(delta: float) -> void:
+	# Aura estatica: la hoja gira, pero no sube y baja.
 	_tiempo += delta
-	position.y = _base_y + sin(_tiempo * 2.0) * 0.15
-	rotation.y += delta * 1.5
+	rotation.y += delta * 0.9
 
 func _crear_colision() -> void:
 	var colision: CollisionShape3D = CollisionShape3D.new()
@@ -31,6 +30,7 @@ func _crear_colision() -> void:
 
 func _crear_malla() -> void:
 	var raiz: Node3D = Node3D.new()
+	raiz.scale = Vector3.ONE * 1.35
 	add_child(raiz)
 	# Hoja/pluma en lugar del toro violeta.
 	var hoja: MeshInstance3D = MeshInstance3D.new()
@@ -48,6 +48,7 @@ func _crear_malla() -> void:
 		estela.position = Vector3(0.0, 0.0, -0.30 - i * 0.12)
 		estela.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		raiz.add_child(estela)
+	AuraScript.crear(raiz, Color(0.4, 1.0, 0.7), 0.95, 1.2)
 
 func _material_velocidad() -> StandardMaterial3D:
 	var material: StandardMaterial3D = StandardMaterial3D.new()

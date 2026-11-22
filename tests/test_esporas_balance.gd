@@ -18,3 +18,7 @@ func test_npc_acelera_con_espora_veloz() -> void:
 	assert_float(NpcScript.multiplicador_velocidad(2.0)).is_equal_approx(
 		GameConfig.MULT_VELOCIDAD_ESPORA_VELOZ, 0.0001
 	)
+
+func test_raiz_frena_al_npc() -> void:
+	assert_float(NpcScript.multiplicador_raiz(0.0)).is_equal_approx(1.0, 0.0001)
+	assert_float(NpcScript.multiplicador_raiz(3.0)).is_equal_approx(0.35, 0.0001)

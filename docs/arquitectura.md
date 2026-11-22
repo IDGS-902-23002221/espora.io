@@ -90,6 +90,8 @@ La espora del jugador golpea NPC; la del NPC golpea jugador y otros NPC. El tira
 - Skins CC0 de Quaternius en `assets/skins/`: `mushnub.glb`, `mushnub_evolved.glb`, `mushroom_king.glb`.
 - NPC CC0 en `assets/npcs/`: `amanita.glb` (Kenney), `cubensis.glb` y `melena.glb` (Quaternius).
 - Decoración CC0 en `assets/decor/`: `plant.glb`, `bush.glb`, `rocks.glb`, `grass.glb`, `tall_grass.glb`, `flower.glb` (Quaternius); se instancia con `MultiMesh` sin colisión.
+- El piso recibe un material procedural de pasto (`FastNoiseLite` + `NoiseTexture2D`) generado por código en el controlador.
+- El cielo usa un `ProceduralSkyMaterial` simple de 3 colores, sin texturas grandes.
 - Los `.glb` se importan desde el editor y generan `.import`; sin importación hay fallback a primitivas.
 - El resto del estilo es low-poly por código: primitivas, emisión y tintes.
 

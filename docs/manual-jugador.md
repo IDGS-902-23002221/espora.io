@@ -14,6 +14,7 @@ Sos una espora que germina al anochecer. Tenés que crecer, sobrevivir a cinco h
 | Disparar espora | clic izquierdo |
 | Pausa / saltar cinemática | `Esc` |
 | Elegir skin | menú **Skins** (carrusel) |
+| Nombre | campo **Tu nombre** en el lobby (2–16 caracteres) |
 
 La cámara captura el mouse al entrar a la partida. `Esc` la libera y abre la pausa. En la pausa solo hay **Reanudar** y **Abandonar partida**. La cámara no baja del piso; `V` alterna primera persona para seguir jugando cuando el hongo es muy grande.
 
@@ -21,7 +22,8 @@ La cámara captura el mouse al entrar a la partida. `Esc` la libera y abre la pa
 
 - Cada nutriente normal suma **0.03** de tamaño.
 - El nutriente dorado multiplica el crecimiento **×7**.
-- El tamaño máximo es **6.0**.
+- El tope de tamaño sube por horda: **4.0 → 5.0 → 6.0 → 7.0 → 8.0**. Al llegar aparece **TAMAÑO MÁXIMO**: los nutrientes dan **+5 puntos extra** y las absorciones **+25**.
+- Si pasan **4 s sin disparar ni absorber**, empezás a perder **0.02 de tamaño por segundo** (hasta el mínimo 1.0). Disparar o absorber reinicia el contador.
 - Cuanto más grande, más lento: la velocidad baja un 8 % por punto de tamaño, con un piso del 60 % de la velocidad base.
 - Al absorber a un NPC ganás el **25 %** de su tamaño; el NPC reaparece con el **60 %** de su tamaño y 3 s de cooldown.
 
@@ -39,7 +41,7 @@ Las esporas son el único ataque; las usan el jugador y los NPC.
 ## Absorción e intentos
 
 - Al vaciar los 3 puntos, el atacante absorbe al objetivo.
-- El jugador tiene **3 intentos**. Al ser absorbido reaparece más chico y queda **5 s invisible**: puede moverse y disparar, no recibe daño de esporas y mantiene la colisión con el piso.
+- El jugador tiene **3 intentos**, mostrados como **3 hojas verdes**. Al ser absorbido reaparece más chico y queda **5 s invisible**: puede moverse y disparar, no recibe daño de esporas y mantiene la colisión con el piso. Al recibir impactos, el borde de la pantalla se oscurece en rojo.
 - Al llegar a 0 intentos, la partida termina en derrota.
 - Los NPC también se absorben entre sí y reaparecen.
 
@@ -80,6 +82,9 @@ Las especies visuales son Amanita (Bosque), Cubensis (Pantano) y Melena (Cueva).
 - **Nutriente dorado:** crecimiento ×7, máximo 1 activo. Aparece después de los primeros 50 s.
 - **Espora escudo:** protege de impactos 10 s, máximo 1 activo. Los NPC también pueden tomarla.
 - **Espora veloz:** +40 % de velocidad 10 s, máximo 1 activo. Los NPC también pueden tomarla.
+- **Cura:** recupera 1 hoja si estás por debajo de 3.
+- **Raíz:** frena a los NPC cercanos durante 4 s.
+- **Invisibilidad:** 6 s sin que los NPC te detecten.
 
 Después de los primeros **50 s**, la producción total se reparte en **40 % nutrientes azules y 60 % esporas especiales**. Antes de eso solo salen azules.
 
@@ -99,6 +104,9 @@ Se eligen en el carrusel del menú; solo cambian la apariencia y no persisten en
 - **Victoria:** sobrevivir a la última horda; se muestra el Acto IV — Amanecer y después el resultado en un panel.
 - **Derrota:** quedarte sin intentos; se muestra el Acto IV — Oscuridad y después el resultado en un panel.
 - **Jugar de nuevo** reinicia la partida; **Volver al lobby** regresa al menú principal. El resultado incluye un campo para escribir tu nombre (vale por la sesión).
+- Cada horda tiene refuerzos a 1/3 y 2/3 del tiempo; el HUD muestra el countdown.
+- Al cambiar de horda, los NPC mejoran su puntería y aparece un aviso de 3.5 s.
+- Al superar una horda recuperás 1 hoja si estás por debajo de 3.
 
 La apertura se muestra una vez por ejecución; el Acto I aparece al iniciar o reiniciar.
 

@@ -22,6 +22,9 @@ var indice_horda: int:
 func configuracion_horda() -> Dictionary:
 	return Hordas.configuracion(hordas.indice)
 
+func maximo_actual() -> float:
+	return GameConfig.maximo_horda(hordas.indice)
+
 func iniciar_partida() -> void:
 	estado_partida = EstadoPartida.JUGANDO
 	victoria = false

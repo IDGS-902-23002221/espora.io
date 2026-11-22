@@ -2,7 +2,8 @@ extends Area3D
 
 signal recogido
 
-var _base_y: float = 0.0
+const AuraScript = preload("res://core/aura.gd")
+
 var _tiempo: float = 0.0
 
 func _ready() -> void:
@@ -12,28 +13,29 @@ func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 	_crear_colision()
 	_crear_malla()
-	_base_y = position.y
 	_tiempo = randf() * TAU
 
 func _process(delta: float) -> void:
+	# Aura estatica: sin sube-baja.
 	_tiempo += delta
-	position.y = _base_y + sin(_tiempo * 2.0) * 0.15
-	rotation.y += delta * 1.5
+	rotation.y += delta * 0.9
 
 func _crear_colision() -> void:
 	var colision: CollisionShape3D = CollisionShape3D.new()
 	var forma: SphereShape3D = SphereShape3D.new()
-	forma.radius = 0.8
+	forma.radius = 1.0
 	colision.shape = forma
 	add_child(colision)
 
 func _crear_malla() -> void:
-	var malla: MeshInstance3D = MeshInstance3D.new()
+	var raiz: Node3D = Node3D.new()
+	add_child(raiz)
 	var esfera: SphereMesh = SphereMesh.new()
-	esfera.radius = 0.45
-	esfera.height = 0.9
+	esfera.radius = 0.62
+	esfera.height = 1.24
 	esfera.radial_segments = 12
 	esfera.rings = 6
+	var malla: MeshInstance3D = MeshInstance3D.new()
 	malla.mesh = esfera
 	var material: StandardMaterial3D = StandardMaterial3D.new()
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -45,7 +47,8 @@ func _crear_malla() -> void:
 	material.emission_energy_multiplier = 2.0
 	malla.material_override = material
 	malla.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(malla)
+	raiz.add_child(malla)
+	AuraScript.crear(raiz, Color(0.35, 1.0, 0.55), 1.05, 1.2)
 
 func _on_body_entered(body: Node3D) -> void:
 	if not body.has_method("activar_escudo"):

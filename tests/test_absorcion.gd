@@ -8,7 +8,7 @@ func test_crecimiento_por_absorcion_aplica_la_fraccion() -> void:
 	assert_float(AbsorcionScript.crecimiento_por_absorcion(1.0, 0.6)).is_equal_approx(1.15, 0.0001)
 
 func test_crecimiento_por_absorcion_respeta_el_tope() -> void:
-	assert_float(AbsorcionScript.crecimiento_por_absorcion(5.9, 2.0)).is_equal_approx(GameConfig.TAMANIO_MAXIMO, 0.0001)
+	assert_float(AbsorcionScript.crecimiento_por_absorcion(5.9, 2.0, 6.0)).is_equal_approx(6.0, 0.0001)
 
 func test_crecimiento_estando_en_el_tope_no_pasa() -> void:
 	assert_float(AbsorcionScript.crecimiento_por_absorcion(GameConfig.TAMANIO_MAXIMO, 6.0)).is_equal_approx(GameConfig.TAMANIO_MAXIMO, 0.0001)
