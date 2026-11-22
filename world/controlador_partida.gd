@@ -21,6 +21,8 @@ const MAX_INTENTOS_APARICION: int = 32
 # Autoload por ruta: `--check-only` valida el script sin cargar autoloads.
 var _game_manager: Node
 var _fin_mostrado: bool = false
+var _tiempo_horda: float = 0.0
+var _oleadas: int = 0
 var _menu_principal: CanvasLayer
 var _menu_skins: CanvasLayer
 var _menu_pausa: CanvasLayer
@@ -32,6 +34,8 @@ var _hud: CanvasLayer
 
 func _ready() -> void:
 	_instalar_tinte_biomas()
+	_instalar_textura_suelo()
+	_instalar_fondo_galaxia()
 	_instalar_decoracion()
 	_instalar_menus()
 	_instalar_ranking()
@@ -45,6 +49,7 @@ func _ready() -> void:
 		pantalla_resultado = get_node_or_null("../PantallaResultado") as CanvasLayer
 	_conectar_eventos()
 	if _game_manager != null and bool(_game_manager.call("esta_jugando")):
+		_reiniciar_oleadas()
 		_generar_horda()
 		_mostrar_acto_i()
 	elif _game_manager != null and not bool(_game_manager.get("apertura_mostrada")):
@@ -73,6 +78,62 @@ func _instalar_decoracion() -> void:
 	var decoracion: Node3D = DecoracionScript.new() as Node3D
 	decoracion.name = "Decoracion"
 	add_child(decoracion)
+
+# Piso con textura procedural de pasto; no necesita assets externos.
+func _instalar_textura_suelo() -> void:
+	var arena: Node = get_parent()
+	if arena == null:
+		return
+	var malla: MeshInstance3D = arena.get_node_or_null("StaticBody3D/MeshInstance3D") as MeshInstance3D
+	if malla == null:
+		return
+	var ruido: FastNoiseLite = FastNoiseLite.new()
+	ruido.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	ruido.frequency = 0.035
+	ruido.fractal_octaves = 4
+	var textura: NoiseTexture2D = NoiseTexture2D.new()
+	textura.width = 256
+	textura.height = 256
+	textura.noise = ruido
+	var ramp: Gradient = Gradient.new()
+	ramp.offsets = PackedFloat32Array([0.0, 0.45, 1.0])
+	ramp.colors = PackedColorArray([
+		Color(0.055, 0.12, 0.065),
+		Color(0.09, 0.20, 0.10),
+		Color(0.16, 0.31, 0.16),
+	])
+	textura.color_ramp = ramp
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.albedo_texture = textura
+	material.albedo_color = Color(1.0, 1.0, 1.0)
+	material.roughness = 1.0
+	material.uv1_triplanar = false
+	material.uv1_world_triplanar = false
+	material.uv1_scale = Vector3(6.0, 6.0, 6.0)
+	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	malla.material_override = material
+
+# Cielo de galaxia procedural: una textura de ruido, sin assets externos.
+func _instalar_fondo_galaxia() -> void:
+	var arena: Node = get_parent()
+	if arena == null:
+		return
+	var ambiente: WorldEnvironment = arena.get_node_or_null("WorldEnvironment") as WorldEnvironment
+	if ambiente == null or ambiente.environment == null:
+		return
+	# Cielo simple de 3 colores: mucho mas barato que una textura panoramica.
+	var material: ProceduralSkyMaterial = ProceduralSkyMaterial.new()
+	material.sky_top_color = Color(0.015, 0.02, 0.07)
+	material.sky_horizon_color = Color(0.08, 0.06, 0.18)
+	material.ground_bottom_color = Color(0.01, 0.02, 0.03)
+	material.ground_horizon_color = Color(0.04, 0.07, 0.09)
+	var cielo: Sky = Sky.new()
+	cielo.sky_material = material
+	var entorno: Environment = ambiente.environment
+	entorno.background_mode = Environment.BG_SKY
+	entorno.sky = cielo
+	entorno.background_energy_multiplier = 0.8
+	entorno.ambient_light_color = Color(0.13, 0.14, 0.28)
 
 func _instalar_menus() -> void:
 	_menu_principal = MenuPrincipalScript.new() as CanvasLayer
@@ -157,6 +218,7 @@ func _on_menu_iniciar() -> void:
 	_ocultar_hud()
 	if _game_manager != null:
 		_game_manager.call("iniciar_partida")
+	_reiniciar_oleadas()
 	_generar_horda()
 	if _pantalla_carga != null:
 		_pantalla_carga.call("iniciar", 0.8)
@@ -177,6 +239,7 @@ func _mostrar_acto_i() -> void:
 
 func _continuar_partida() -> void:
 	_mostrar_hud()
+	_anunciar_horda()
 	get_tree().paused = false
 	_recapturar_mouse()
 
@@ -277,6 +340,49 @@ func _process(delta: float) -> void:
 	_atender_debug()
 	var hordas: Hordas = _game_manager.get("hordas")
 	_procesar_eventos(hordas.avanzar_tiempo(delta))
+	_actualizar_oleadas(delta, hordas)
+
+# Refuerzos a 1/3 y 2/3 de la horda para que no sea un reloj plano.
+func _actualizar_oleadas(delta: float, hordas: Hordas) -> void:
+	if hordas.en_pausa or hordas.terminada:
+		return
+	_tiempo_horda += delta
+	var duracion: float = Hordas.duracion(hordas.indice)
+	if duracion <= 0.0:
+		return
+	while _oleadas < 2 and _tiempo_horda >= duracion * float(_oleadas + 1) / 3.0:
+		_oleadas += 1
+		_reforzar_horda(2)
+
+func _reforzar_horda(cantidad: int) -> void:
+	if _game_manager == null:
+		return
+	var config: Dictionary = _game_manager.call("configuracion_horda")
+	var vivos: int = _contar_npcs()
+	var cupo: int = mini(cantidad, GameConfig.NPC_MAX_ABSOLUTO - vivos)
+	if cupo <= 0:
+		return
+	var multiplicador: float = float(config["mult_tamanio_aparicion"])
+	for i in cupo:
+		_crear_npc(multiplicador)
+
+func _reiniciar_oleadas() -> void:
+	_tiempo_horda = 0.0
+	_oleadas = 0
+
+func _anunciar_horda() -> void:
+	if _hud == null or _game_manager == null:
+		return
+	var config: Dictionary = _game_manager.call("configuracion_horda")
+	if config.is_empty():
+		return
+	var indice: int = int(_game_manager.get("indice_horda"))
+	var aviso: String = str(config.get("aviso", "La horda cambia"))
+	_hud.call(
+		"mostrar_anuncio_horda",
+		"Horda %d/%d — %s" % [indice + 1, Hordas.total(), aviso],
+		3.5
+	)
 
 func _on_nutriente_consumido() -> void:
 	if _game_manager == null or jugador == null:
@@ -285,7 +391,14 @@ func _on_nutriente_consumido() -> void:
 	if progreso == null:
 		return
 	progreso.sumar_nutriente()
+	if float(jugador.get("tamanio")) >= _maximo_actual():
+		progreso.sumar_excedente(GameConfig.PUNTOS_EXCEDENTE_NUTRIENTE)
 	progreso.registrar_tamanio(float(jugador.get("tamanio")))
+
+func _maximo_actual() -> float:
+	if _game_manager != null and _game_manager.has_method("maximo_actual"):
+		return float(_game_manager.call("maximo_actual"))
+	return GameConfig.TAMANIO_MAXIMO
 
 func _on_absorcion_realizada(_tamanio_absorbido: float) -> void:
 	if _game_manager == null or jugador == null:
@@ -294,6 +407,8 @@ func _on_absorcion_realizada(_tamanio_absorbido: float) -> void:
 	if progreso == null:
 		return
 	progreso.registrar_absorcion()
+	if float(jugador.get("tamanio")) >= _maximo_actual():
+		progreso.sumar_excedente(GameConfig.PUNTOS_EXCEDENTE_ABSORCION)
 	progreso.registrar_tamanio(float(jugador.get("tamanio")))
 
 func _on_jugador_absorbido() -> void:
@@ -335,12 +450,16 @@ func _procesar_eventos(eventos: Array) -> void:
 	for evento in eventos:
 		var tipo: int = int(evento)
 		if tipo == Hordas.Evento.INICIO_HORDA:
+			_reiniciar_oleadas()
 			_generar_horda()
+			_anunciar_horda()
 		elif tipo == Hordas.Evento.FIN_HORDA:
 			if _game_manager != null:
 				var progreso: Puntaje = _game_manager.get("progreso")
 				if progreso != null:
 					progreso.sumar_horda()
+					# Recompensa: recuperar una hoja si estas por debajo del maximo.
+					progreso.recuperar_intento()
 		elif tipo == Hordas.Evento.FIN_PARTIDA:
 			if _game_manager != null:
 				var progreso: Puntaje = _game_manager.get("progreso")

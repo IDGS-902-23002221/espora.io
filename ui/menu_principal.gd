@@ -4,7 +4,10 @@ signal iniciar
 signal skins
 
 const EstiloScript = preload("res://ui/estilo_ui.gd")
+const NombreScript = preload("res://core/nombre_jugador.gd")
 const CAPA: int = 30
+
+var _campo_nombre: LineEdit
 
 func _init() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -58,6 +61,28 @@ func _ready() -> void:
 	linea.custom_minimum_size = Vector2(0.0, 2.0)
 	caja.add_child(linea)
 
+	var etiqueta_nombre: Label = Label.new()
+	etiqueta_nombre.text = "Tu nombre:"
+	etiqueta_nombre.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	EstiloScript.aplicar_texto(etiqueta_nombre, 16, EstiloScript.TEXTO_TENUE)
+	caja.add_child(etiqueta_nombre)
+
+	_campo_nombre = LineEdit.new()
+	_campo_nombre.name = "NombreLobby"
+	_campo_nombre.placeholder_text = "2 a 16 caracteres"
+	_campo_nombre.max_length = NombreScript.MAXIMO
+	_campo_nombre.custom_minimum_size = Vector2(320.0, 42.0)
+	_campo_nombre.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_campo_nombre.add_theme_font_override("font", EstiloScript.fuente(400))
+	_campo_nombre.add_theme_font_size_override("font_size", 20)
+	_campo_nombre.add_theme_color_override("font_color", EstiloScript.TEXTO)
+	_campo_nombre.add_theme_color_override("caret_color", EstiloScript.ACENTO)
+	var gm: Node = get_node_or_null("/root/GameManager")
+	if gm != null:
+		_campo_nombre.text = NombreScript.normalizar(str(gm.get("nombre_jugador")))
+	_campo_nombre.text_changed.connect(_on_nombre_cambiado)
+	caja.add_child(_campo_nombre)
+
 	var boton_iniciar: Button = _boton("Iniciar partida", "BotonIniciar", false, false)
 	caja.add_child(boton_iniciar)
 	boton_iniciar.pressed.connect(_on_iniciar)
@@ -80,7 +105,24 @@ func _boton(texto: String, nombre: String, deshabilitado: bool, peligro: bool) -
 	return boton
 
 func _on_iniciar() -> void:
+	_guardar_nombre()
 	iniciar.emit()
+
+func _on_nombre_cambiado(texto: String) -> void:
+	# No forzar el default mientras el usuario esta escribiendo.
+	if texto.strip_edges().length() >= NombreScript.MINIMO:
+		_aplicar_nombre(texto)
+
+func _guardar_nombre() -> void:
+	var final: String = NombreScript.normalizar(_campo_nombre.text if _campo_nombre != null else "")
+	if _campo_nombre != null:
+		_campo_nombre.text = final
+	_aplicar_nombre(final)
+
+func _aplicar_nombre(nombre: String) -> void:
+	var gm: Node = get_node_or_null("/root/GameManager")
+	if gm != null:
+		gm.set("nombre_jugador", NombreScript.normalizar(nombre))
 
 func _on_skins() -> void:
 	skins.emit()

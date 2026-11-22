@@ -45,9 +45,11 @@ var _tiempo_disparo: float = 0.0
 # Efectos de esporas especiales (escudo/velocidad).
 var _tiempo_escudo: float = 0.0
 var _tiempo_velocidad: float = 0.0
+var _tiempo_raiz: float = 0.0
 var _tiempo_aviso: float = 0.0
 var _escudo_visual: MeshInstance3D
 var _velocidad_visual: Node3D
+var _raiz_visual: MeshInstance3D
 # Objetivo actual: el hongo mas cercano dentro del radio (jugador u otro NPC).
 var _objetivo: Node3D
 var _objetivo_posicion: Vector3 = Vector3.ZERO
@@ -72,6 +74,7 @@ func _ready() -> void:
 	_aplicar_especie()
 	_crear_escudo_visual()
 	_crear_velocidad_visual()
+	_crear_raiz_visual()
 	if etiqueta_estado != null:
 		etiqueta_estado.visibility_range_end = 40.0
 	# La etiqueta se refresca sola cuando cambian los puntos (impacto o regeneracion).
@@ -84,6 +87,7 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	_actualizar_escudo(delta)
 	_actualizar_velocidad(delta)
+	_actualizar_raiz(delta)
 	_tiempo_aviso = maxf(0.0, _tiempo_aviso - delta)
 	# Durante el cooldown queda oculto, congelado e intocable.
 	if _en_cooldown:
@@ -104,6 +108,7 @@ func _physics_process(delta: float) -> void:
 	var velocidad_base: float = float(_config_horda()["velocidad_npc"])
 	var velocidad: float = Crecimiento.velocidad_por_tamanio(tamanio, velocidad_base)
 	velocidad *= multiplicador_velocidad(_tiempo_velocidad)
+	velocidad *= multiplicador_raiz(_tiempo_raiz)
 	velocity.x = direccion.x * velocidad
 	velocity.z = direccion.z * velocidad
 
@@ -176,8 +181,10 @@ func _tamanio_de(nodo: Node3D) -> float:
 	return float(valor)
 
 func _es_activo(nodo: Node3D) -> bool:
-	if nodo.has_method("esta_activo"):
-		return bool(nodo.call("esta_activo"))
+	if nodo.has_method("esta_activo") and not bool(nodo.call("esta_activo")):
+		return false
+	if nodo.has_method("esta_invisible") and bool(nodo.call("esta_invisible")):
+		return false
 	return true
 
 func _radio_deteccion() -> float:
@@ -380,6 +387,45 @@ func _material_velocidad() -> StandardMaterial3D:
 	material.emission_energy_multiplier = 1.6
 	return material
 
+func aplicar_raiz(duracion: float) -> void:
+	_tiempo_raiz = maxf(_tiempo_raiz, duracion)
+	if _raiz_visual != null:
+		_raiz_visual.visible = true
+
+func _actualizar_raiz(delta: float) -> void:
+	if _tiempo_raiz <= 0.0:
+		return
+	_tiempo_raiz = maxf(0.0, _tiempo_raiz - delta)
+	if _tiempo_raiz == 0.0 and _raiz_visual != null:
+		_raiz_visual.visible = false
+
+static func multiplicador_raiz(tiempo: float) -> float:
+	if tiempo > 0.0:
+		return 0.35
+	return 1.0
+
+func _crear_raiz_visual() -> void:
+	_raiz_visual = MeshInstance3D.new()
+	var toro: TorusMesh = TorusMesh.new()
+	toro.inner_radius = 0.55
+	toro.outer_radius = 0.75
+	toro.rings = 12
+	toro.ring_segments = 6
+	_raiz_visual.mesh = toro
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	material.albedo_color = Color(0.35, 0.95, 0.35, 0.55)
+	material.emission_enabled = true
+	material.emission = Color(0.2, 0.8, 0.25)
+	material.emission_energy_multiplier = 1.2
+	_raiz_visual.material_override = material
+	_raiz_visual.position = Vector3(0.0, 0.18, 0.0)
+	_raiz_visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_raiz_visual.visible = false
+	_visual.add_child(_raiz_visual)
+
 func _aplicar_tamanio() -> void:
 	if _visual != null:
 		_visual.scale = Vector3.ONE * tamanio
@@ -453,12 +499,17 @@ func recibir_impacto(tamanio_atacante: float, atacante: Node3D) -> void:
 
 # El NPC tambien come nutrientes: crece igual que el jugador.
 func consumir_nutriente(multiplicador: float = 1.0) -> void:
-	tamanio = Crecimiento.crecer(tamanio, multiplicador)
+	tamanio = Crecimiento.crecer(tamanio, multiplicador, _maximo_actual())
 	_aplicar_tamanio()
+
+func _maximo_actual() -> float:
+	if _game_manager != null and _game_manager.has_method("maximo_actual"):
+		return float(_game_manager.call("maximo_actual"))
+	return GameConfig.TAMANIO_MAXIMO
 
 # Lo llama el jugador absorbido; quien absorbe crece (regla congelada).
 func absorber(tamanio_absorbido: float) -> void:
-	tamanio = Absorcion.crecimiento_por_absorcion(tamanio, tamanio_absorbido)
+	tamanio = Absorcion.crecimiento_por_absorcion(tamanio, tamanio_absorbido, _maximo_actual())
 	_aplicar_tamanio()
 
 # Regla pura duplicada del umbral para poder testearla sin nodo.
@@ -500,6 +551,10 @@ func _disparar() -> void:
 	var direccion: Vector3 = _direccion_hacia(punto)
 	if direccion == Vector3.ZERO:
 		return
+	# Precision por horda: las primeras fallan mas, las ultimas casi no.
+	var error: float = float(_config_horda().get("error_apuntado", 0.0))
+	if error > 0.0:
+		direccion = direccion.rotated(Vector3.UP, randf_range(-error, error)).normalized()
 	var escena: Node = get_tree().current_scene
 	if escena == null:
 		return

@@ -10,11 +10,12 @@ const RUTAS: Array[String] = [
 	"res://assets/decor/grass.glb",
 	"res://assets/decor/tall_grass.glb",
 	"res://assets/decor/flower.glb",
+	"res://assets/decor/rocks.glb",
 ]
 # Altura objetivo por tipo.
-const ALTURAS = [1.0, 1.4, 0.7, 0.5, 0.9, 0.6]
-# Cuantas instancias de cada tipo.
-const CANTIDADES = [30, 22, 28, 45, 26, 28]
+const ALTURAS = [1.0, 1.4, 0.7, 0.5, 0.9, 0.6, 0.22]
+# Cuantas instancias de cada tipo (la ultima es piedrita chica).
+const CANTIDADES = [12, 8, 12, 30, 15, 12, 20]
 const RADIO_MIN: float = 6.0
 const SEMILLA: int = 20261121
 

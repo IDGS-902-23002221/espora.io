@@ -16,5 +16,5 @@ func test_resultado_usa_panel_y_boton_lobby() -> void:
 	assert_str(lobby.text).is_equal("Volver al lobby")
 	var nombre: LineEdit = pantalla.find_child("NombreJugador", true, false) as LineEdit
 	assert_object(nombre).is_not_null()
-	assert_int(nombre.max_length).is_equal(20)
+	assert_int(nombre.max_length).is_equal(16)
 	pantalla.free()

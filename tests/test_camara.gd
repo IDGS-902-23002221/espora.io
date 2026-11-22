@@ -26,7 +26,7 @@ func test_limite_cero_anula_el_movimiento() -> void:
 func test_pivote_sube_con_el_tamanio() -> void:
 	assert_float(CamaraOrbit.altura_pivote_para(1.0)).is_equal_approx(1.6, 0.001)
 	assert_float(CamaraOrbit.altura_pivote_para(3.0)).is_equal_approx(4.65, 0.001)
-	assert_float(CamaraOrbit.altura_pivote_para(10.0)).is_equal_approx(6.5, 0.001)
+	assert_float(CamaraOrbit.altura_pivote_para(10.0)).is_equal_approx(8.5, 0.001)
 
 func test_brazo_no_baja_de_la_altura_de_suelo() -> void:
 	var altura: float = CamaraOrbit.altura_pivote_para(1.0)

@@ -1,12 +1,12 @@
 extends Control
 
-# Tres honguitos rojos para las vidas, dibujados por codigo.
+# Tres hojas verdes para las vidas, dibujadas por codigo.
 const CANTIDAD: int = 3
 const ANCHO: float = 40.0
 const ALTO: float = 36.0
-const ROJO: Color = Color(0.95, 0.20, 0.18, 1.0)
-const ROJO_IMPACTO: Color = Color(1.0, 0.55, 0.20, 1.0)
-const VACIO: Color = Color(0.12, 0.14, 0.13, 0.9)
+const VERDE: Color = Color(0.38, 0.92, 0.45, 1.0)
+const VERDE_IMPACTO: Color = Color(1.0, 0.82, 0.30, 1.0)
+const VACIO: Color = Color(0.10, 0.16, 0.11, 0.9)
 
 var _vidas: int = CANTIDAD
 var _parpadeo: int = -1
@@ -29,19 +29,21 @@ func vidas_actuales() -> int:
 
 func _draw() -> void:
 	for i in CANTIDAD:
-		var color: Color = ROJO if i < _vidas else VACIO
+		var color: Color = VERDE if i < _vidas else VACIO
 		if i == _parpadeo:
-			color = ROJO_IMPACTO
-		_hongo(Vector2(i * ANCHO, 0.0), color)
+			color = VERDE_IMPACTO
+		_hoja(Vector2(i * ANCHO, 0.0), color)
 
-func _hongo(base: Vector2, color: Color) -> void:
-	# Sombrero: circulo achatado y borde inferior recto.
-	var centro: Vector2 = base + Vector2(ANCHO * 0.5, 13.0)
-	draw_circle(centro, 12.0, color)
-	draw_rect(Rect2(base.x + 3.0, base.y + 13.0, ANCHO - 6.0, 4.0), color)
-	# Tallo simple, un poco mas oscuro.
-	draw_rect(Rect2(base.x + 12.0, base.y + 17.0, ANCHO - 24.0, 15.0), color.darkened(0.18))
-	# Dos manchitas claras en el sombrero.
-	var claro: Color = Color(1.0, 0.86, 0.78, 0.55)
-	draw_circle(base + Vector2(ANCHO * 0.5 - 5.0, 8.0), 2.0, claro)
-	draw_circle(base + Vector2(ANCHO * 0.5 + 4.0, 5.0), 1.6, claro)
+func _hoja(base: Vector2, color: Color) -> void:
+	var centro: Vector2 = base + Vector2(ANCHO * 0.5, ALTO * 0.5)
+	var puntos: PackedVector2Array = PackedVector2Array()
+	# Hoja inclinada: dos triangulos suaves alrededor del centro.
+	for i in 12:
+		var t: float = TAU * float(i) / 12.0
+		var local: Vector2 = Vector2(cos(t) * 9.0, sin(t) * 14.0).rotated(-0.55)
+		puntos.append(centro + local)
+	draw_colored_polygon(puntos, color)
+	# Tallo y vena central.
+	var tallo: Color = Color(0.18, 0.42, 0.22, 0.95)
+	draw_line(base + Vector2(ANCHO * 0.5, ALTO - 2.0), centro, tallo, 2.2, true)
+	draw_line(centro + Vector2(-5.0, 8.0), centro + Vector2(5.0, -8.0), color.darkened(0.28), 1.6, true)

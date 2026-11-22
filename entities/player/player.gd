@@ -33,6 +33,9 @@ var _tiempo_reaparicion: float = 0.0
 var _tiempo_escudo: float = 0.0
 var _escudo_visual: MeshInstance3D
 var _tiempo_velocidad: float = 0.0
+var _tiempo_invisibilidad: float = 0.0
+var _tiempo_sin_actividad: float = 0.0
+var _acumulador_presion: float = 0.0
 var _velocidad_visual: Node3D
 var _material_cuerpo: StandardMaterial3D
 var _material_sombrero: StandardMaterial3D
@@ -53,6 +56,8 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	_actualizar_escudo(delta)
 	_actualizar_velocidad(delta)
+	_actualizar_invisibilidad(delta)
+	_actualizar_presion_horda(delta)
 	# Durante la reaparicion queda invisible e invulnerable, pero se puede mover.
 	if _en_reaparicion:
 		_avanzar_reaparicion(delta)
@@ -129,6 +134,9 @@ func disparar() -> void:
 	if espora == null:
 		return
 	_tiempo_cooldown = GameConfig.COOLDOWN_DISPARO_JUGADOR
+	# Disparar mantiene a raya la presion de horda.
+	_tiempo_sin_actividad = 0.0
+	_acumulador_presion = 0.0
 
 # Gira el punto frontal segun el yaw de la camara, manteniendo su altura.
 func _origen_disparo(direccion: Vector3) -> Vector3:
@@ -142,8 +150,31 @@ func _origen_disparo(direccion: Vector3) -> Vector3:
 static func direccion_disparo_horizontal(base_camara: Basis) -> Vector3:
 	return EsporaScript.direccion_horizontal(-base_camara.z)
 
+func _actualizar_presion_horda(delta: float) -> void:
+	# Si no disparas ni absorbes, la horda te va comiendo el tamano.
+	if _en_reaparicion:
+		_acumulador_presion = 0.0
+		return
+	_tiempo_sin_actividad += delta
+	if _tiempo_sin_actividad <= GameConfig.PRESION_HORDA_ESPERA:
+		_acumulador_presion = 0.0
+		return
+	_acumulador_presion += delta
+	if _acumulador_presion < 0.5:
+		return
+	var perdida: float = GameConfig.PRESION_HORDA_DECRECIMIENTO * _acumulador_presion
+	_acumulador_presion = 0.0
+	tamanio = maxf(GameConfig.TAMANIO_INICIAL, tamanio - perdida)
+	_aplicar_tamanio()
+
+func _maximo_actual() -> float:
+	var gm: Node = get_node_or_null("/root/GameManager")
+	if gm != null and gm.has_method("maximo_actual"):
+		return float(gm.call("maximo_actual"))
+	return GameConfig.TAMANIO_MAXIMO
+
 func consumir_nutriente(multiplicador: float = 1.0) -> void:
-	tamanio = Crecimiento.crecer(tamanio, multiplicador)
+	tamanio = Crecimiento.crecer(tamanio, multiplicador, _maximo_actual())
 	_aplicar_tamanio()
 	# Despues de actualizar el tamano, para que el maximo no quede atras.
 	nutriente_consumido.emit()
@@ -165,6 +196,39 @@ func activar_velocidad() -> void:
 	if _velocidad_visual != null:
 		_velocidad_visual.visible = true
 
+func activar_invisibilidad() -> void:
+	_tiempo_invisibilidad = 6.0
+	_actualizar_visibilidad()
+
+func _actualizar_invisibilidad(delta: float) -> void:
+	if _tiempo_invisibilidad <= 0.0:
+		return
+	_tiempo_invisibilidad = maxf(0.0, _tiempo_invisibilidad - delta)
+	if _tiempo_invisibilidad == 0.0:
+		_actualizar_visibilidad()
+
+func esta_invisible() -> bool:
+	return _tiempo_invisibilidad > 0.0 or _en_reaparicion
+
+func recuperar_vida() -> void:
+	var gm: Node = get_node_or_null("/root/GameManager")
+	if gm == null:
+		return
+	var progreso: Puntaje = gm.get("progreso")
+	if progreso != null:
+		progreso.recuperar_intento()
+
+# La raiz frena a los NPC cercanos; la toma el jugador.
+func aplicar_raiz() -> void:
+	for nodo in get_tree().get_nodes_in_group("npcs"):
+		var npc: Node3D = nodo as Node3D
+		if npc == null:
+			continue
+		if npc.global_position.distance_to(global_position) > 18.0:
+			continue
+		if npc.has_method("aplicar_raiz"):
+			npc.call("aplicar_raiz", 4.0)
+
 func _actualizar_velocidad(delta: float) -> void:
 	if _tiempo_velocidad <= 0.0:
 		return
@@ -182,8 +246,11 @@ static func multiplicador_velocidad(tiempo: float) -> float:
 
 # Lo llama el NPC absorbido a traves de la referencia que guardo la espora.
 func absorber(tamanio_absorbido: float) -> void:
-	tamanio = Absorcion.crecimiento_por_absorcion(tamanio, tamanio_absorbido)
+	tamanio = Absorcion.crecimiento_por_absorcion(tamanio, tamanio_absorbido, _maximo_actual())
 	_aplicar_tamanio()
+	# Absorber tambien resetea la presion de horda.
+	_tiempo_sin_actividad = 0.0
+	_acumulador_presion = 0.0
 	absorcion_realizada.emit(tamanio_absorbido)
 
 func puntos_actuales() -> int:
@@ -258,10 +325,9 @@ func _avanzar_reaparicion(delta: float) -> void:
 	if _tiempo_reaparicion > 0.0:
 		return
 	_en_reaparicion = false
-	# Puntos llenos: el HUD vuelve a 3 honguitos.
+	# Puntos llenos: el HUD vuelve a 3 hojas.
 	_puntos_dano.reiniciar()
-	_visual.visible = _puede_mostrar_visual()
-	_ocultar_luz_jugador(false)
+	_actualizar_visibilidad()
 	_colision.set_deferred("disabled", false)
 
 func _ocultar_luz_jugador(ocultar: bool) -> void:
@@ -270,10 +336,17 @@ func _ocultar_luz_jugador(ocultar: bool) -> void:
 		luz.visible = not ocultar
 
 func _puede_mostrar_visual() -> bool:
+	if _tiempo_invisibilidad > 0.0:
+		return false
 	var brazo: SpringArm3D = get_node_or_null("SpringArm3D") as SpringArm3D
 	if brazo != null and brazo.has_method("esta_en_primera_persona"):
 		return not bool(brazo.call("esta_en_primera_persona"))
 	return true
+
+func _actualizar_visibilidad() -> void:
+	var mostrar: bool = _puede_mostrar_visual() and not _en_reaparicion
+	_visual.visible = mostrar
+	_ocultar_luz_jugador(not mostrar)
 
 func _reubicar_en_arena() -> void:
 	# Misma distribucion uniforme que el spawner y el NPC (calculo copiado).

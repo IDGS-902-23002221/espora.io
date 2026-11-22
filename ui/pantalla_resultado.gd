@@ -1,6 +1,7 @@
 extends CanvasLayer
 
 const EstiloScript = preload("res://ui/estilo_ui.gd")
+const NombreScript = preload("res://core/nombre_jugador.gd")
 
 @export var etiqueta_titulo: Label
 @export var etiqueta_subtitulo: Label
@@ -86,7 +87,7 @@ func _crear_panel() -> void:
 	_nombre = LineEdit.new()
 	_nombre.name = "NombreJugador"
 	_nombre.placeholder_text = "Tu nombre"
-	_nombre.max_length = 20
+	_nombre.max_length = NombreScript.MAXIMO
 	_nombre.custom_minimum_size = Vector2(320.0, 42.0)
 	_nombre.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_nombre.add_theme_font_override("font", EstiloScript.fuente(400))
@@ -160,10 +161,21 @@ func _on_nombre_cambiado(texto: String) -> void:
 	var gm: Node = get_node_or_null("/root/GameManager")
 	if gm == null:
 		return
-	var limpio: String = texto.strip_edges().left(20)
-	gm.set("nombre_jugador", limpio if not limpio.is_empty() else "Jugador")
+	# No piso el default mientras el usuario todavia esta escribiendo.
+	if texto.strip_edges().length() >= NombreScript.MINIMO:
+		gm.set("nombre_jugador", NombreScript.normalizar(texto))
+
+func _guardar_nombre() -> void:
+	var gm: Node = get_node_or_null("/root/GameManager")
+	if gm == null:
+		return
+	var final: String = NombreScript.normalizar(_nombre.text if _nombre != null else "")
+	if _nombre != null:
+		_nombre.text = final
+	gm.set("nombre_jugador", final)
 
 func _on_reiniciar() -> void:
+	_guardar_nombre()
 	get_tree().paused = false
 	var gm: Node = get_node_or_null("/root/GameManager")
 	if gm != null:
@@ -172,6 +184,7 @@ func _on_reiniciar() -> void:
 	get_tree().reload_current_scene()
 
 func _on_volver_lobby() -> void:
+	_guardar_nombre()
 	get_tree().paused = false
 	var gm: Node = get_node_or_null("/root/GameManager")
 	if gm != null:
