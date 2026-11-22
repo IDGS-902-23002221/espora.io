@@ -21,7 +21,7 @@ const COLOR_IMPACTO: Color = Color(0.92, 0.45, 0.36, 1.0)
 # mueve a GameConfig en el ticket que lo permita.
 const DURACION_PARPADEO: float = 0.2
 
-var _puntos: int = GameConfig.IMPACTOS_PARA_ABSORBER
+var _puntos: int = GameConfig.IMPACTOS_PARA_ABSORBER_JUGADOR
 var _controles: Array[ColorRect] = []
 var _indice_parpadeo: int = -1
 var _tiempo_parpadeo: float = 0.0
@@ -30,6 +30,7 @@ var _game_manager: Node
 var _texto_horda: String = ""
 var _mira: Control
 var _vidas: Control
+var _intentos: int = 3
 var _max_label: Label
 var _aviso: Label
 var _tiempo_aviso: float = 0.0
@@ -195,7 +196,8 @@ func _crear_vidas() -> void:
 	if gm != null:
 		var progreso: Puntaje = gm.get("progreso")
 		if progreso != null:
-			_vidas.call("mostrar", progreso.intentos, -1)
+			_intentos = progreso.intentos
+			_vidas.call("mostrar", _puntos, -1)
 
 func _crear_mira() -> void:
 	_mira = MiraScript.new() as Control
@@ -264,6 +266,8 @@ func _on_puntos_cambiados(restantes: int) -> void:
 		# Al regenerar no parpadea.
 		_indice_parpadeo = -1
 	_puntos = restantes
+	if _vidas != null:
+		_vidas.call("mostrar", _puntos, _indice_parpadeo)
 	_pintar()
 
 func _conectar_progreso() -> void:
@@ -282,10 +286,16 @@ func _on_puntaje_cambiado(total: int) -> void:
 		etiqueta_puntaje.text = "Puntaje: %d" % total
 
 func _on_intentos_cambiados(restantes: int) -> void:
+	_intentos = restantes
+	# Al perder una hoja, la siguiente arranca llena (aunque el jugador siga invisible).
+	if restantes > 0:
+		_puntos = GameConfig.IMPACTOS_PARA_ABSORBER_JUGADOR
+	else:
+		_puntos = 0
 	if etiqueta_intentos != null:
 		etiqueta_intentos.text = "Intentos: %d" % restantes
 	if _vidas != null:
-		_vidas.call("mostrar", restantes, -1)
+		_vidas.call("mostrar", _puntos, -1)
 
 # Refresca solo cuando cambia el indice; durante la pausa queda la horda terminada.
 func _actualizar_horda() -> void:

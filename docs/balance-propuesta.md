@@ -36,6 +36,7 @@ Por qué histéresis: sin ella, un NPC con proporción 1.0 ± ruido cambiaría d
 | `TAMANIO_INICIAL` | 1.0 | Jugador al empezar |
 | `TAMANIO_MAXIMO` | 8.0 | Tope absoluto; el jugador sube 4→5→6→7→8 por horda |
 | `PRESION_HORDA_ESPERA` | 4.0 | Segundos sin disparar/absorber antes de perder tamaño |
+| `PRESION_HORDA_RETRASO_INICIAL` | 10.0 | Gracia inicial sin presión |
 | `PRESION_HORDA_DECRECIMIENTO` | 0.02 | Tamaño perdido por segundo en presión |
 | `CRECIMIENTO_NUTRIENTE` | 0.03 | Aprox. 33 nutrientes para duplicar el tamaño |
 | `MULT_NUTRIENTE_DORADO` | 7.0 | Ajustado por feedback (×7) |

@@ -25,10 +25,11 @@ var tamanio: float = GameConfig.TAMANIO_INICIAL
 var _gravedad: float = ProjectSettings.get_setting("physics/3d/default_gravity", 9.8)
 var _tiempo_cooldown: float = 0.0
 # Puntos de dano del jugador; el HUD los dibuja.
-var _puntos_dano: PuntosDano = PuntosDano.new()
+var _puntos_dano: PuntosDano = PuntosDano.new(GameConfig.IMPACTOS_PARA_ABSORBER_JUGADOR)
 # Ultimo NPC que acerto un impacto valido: crece cuando nos absorbe.
 var _atacante_ultimo: Node3D
 var _en_reaparicion: bool = false
+var _perdiendo_vida: bool = false
 var _tiempo_reaparicion: float = 0.0
 var _tiempo_escudo: float = 0.0
 var _escudo_visual: MeshInstance3D
@@ -155,6 +156,14 @@ func _actualizar_presion_horda(delta: float) -> void:
 	if _en_reaparicion:
 		_acumulador_presion = 0.0
 		return
+	# Los primeros 10 s son de gracia para crecer.
+	var gm: Node = get_node_or_null("/root/GameManager")
+	if gm != null:
+		var progreso: Puntaje = gm.get("progreso")
+		if progreso != null and progreso.tiempo < GameConfig.PRESION_HORDA_RETRASO_INICIAL:
+			_tiempo_sin_actividad = 0.0
+			_acumulador_presion = 0.0
+			return
 	_tiempo_sin_actividad += delta
 	if _tiempo_sin_actividad <= GameConfig.PRESION_HORDA_ESPERA:
 		_acumulador_presion = 0.0
@@ -290,6 +299,10 @@ func _on_puntos_cambiados(restantes: int) -> void:
 	puntos_cambiados.emit(restantes)
 
 func _on_absorbido() -> void:
+	# Un solo evento de absorcion por hoja, aunque lleguen dos esporas juntas.
+	if _perdiendo_vida:
+		return
+	_perdiendo_vida = true
 	absorbido.emit()
 	# Diferido: el impacto llega desde el Area3D de la espora.
 	_iniciar_reaparicion.call_deferred()
@@ -297,9 +310,13 @@ func _on_absorbido() -> void:
 func _iniciar_reaparicion() -> void:
 	# Sin intentos (o partida terminada) no hay reaparicion: derrota.
 	var gm: Node = get_node_or_null("/root/GameManager")
+	if gm == null:
+		_perdiendo_vida = false
+		return
 	if gm != null:
 		var progreso: Puntaje = gm.get("progreso")
 		if progreso == null or progreso.intentos <= 0 or not bool(gm.call("esta_jugando")):
+			_perdiendo_vida = false
 			return
 
 	# El que nos vacio crece con el tamano que teniamos (regla congelada).
@@ -312,6 +329,7 @@ func _iniciar_reaparicion() -> void:
 	_aplicar_tamanio()
 	_reubicar_en_arena()
 	_en_reaparicion = true
+	_perdiendo_vida = false
 	_tiempo_reaparicion = GameConfig.COOLDOWN_REAPARICION_JUGADOR
 	_tiempo_cooldown = 0.0
 	velocity = Vector3.ZERO

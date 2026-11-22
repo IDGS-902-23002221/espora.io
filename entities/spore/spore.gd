@@ -16,7 +16,11 @@ var _impactado: bool = false
 
 func _ready() -> void:
 	# Deteccion por Area contra el cuerpo del NPC (capa 2), no por grupos.
+	add_to_group("esporas")
 	body_entered.connect(_on_body_entered)
+
+func direccion_actual() -> Vector3:
+	return _direccion
 
 # El jugador llama esto justo despues de sumar la espora a la escena.
 func configurar(direccion: Vector3, tamanio: float, quien: Node3D) -> void:

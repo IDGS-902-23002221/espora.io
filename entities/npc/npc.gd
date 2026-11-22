@@ -47,6 +47,9 @@ var _tiempo_escudo: float = 0.0
 var _tiempo_velocidad: float = 0.0
 var _tiempo_raiz: float = 0.0
 var _tiempo_aviso: float = 0.0
+var _tiempo_esquiva: float = 0.0
+var _cooldown_esquiva: float = 0.0
+var _direccion_esquiva: Vector3 = Vector3.ZERO
 var _escudo_visual: MeshInstance3D
 var _velocidad_visual: Node3D
 var _raiz_visual: MeshInstance3D
@@ -102,6 +105,7 @@ func _physics_process(delta: float) -> void:
 	# La regeneracion (4 s por punto) corre en el NPC, no en el proyectil.
 	_puntos_dano.avanzar_tiempo(delta)
 	_actualizar_objetivo(delta)
+	_actualizar_esquiva(delta)
 	_actualizar_estado(delta)
 	_actualizar_disparo(delta)
 	var direccion: Vector3 = _direccion_actual(delta)
@@ -140,6 +144,8 @@ func _cambiar_estado(nuevo: int) -> void:
 	_actualizar_etiqueta()
 
 func _direccion_actual(delta: float) -> Vector3:
+	if _tiempo_esquiva > 0.0:
+		return _evitar_borde(_direccion_esquiva)
 	var direccion: Vector3 = Vector3.ZERO
 	match _estado:
 		ReglaTamanio.EstadoTamanio.PERSEGUIR:
@@ -159,6 +165,43 @@ func _direccion_hacia(objetivo: Vector3) -> Vector3:
 	if direccion.length_squared() == 0.0:
 		return Vector3.ZERO
 	return direccion.normalized()
+
+func _actualizar_esquiva(delta: float) -> void:
+	_tiempo_esquiva = maxf(0.0, _tiempo_esquiva - delta)
+	_cooldown_esquiva = maxf(0.0, _cooldown_esquiva - delta)
+	if _tiempo_esquiva > 0.0 or _cooldown_esquiva > 0.0:
+		return
+	_config_horda()
+	# Horda 1 no esquiva; la 5 esquiva el 80 % de las veces.
+	var probabilidad: float = clampf(float(_horda_indice) * 0.2, 0.0, 0.8)
+	if probabilidad <= 0.0 or randf() > probabilidad:
+		_cooldown_esquiva = 0.35
+		return
+	for nodo in get_tree().get_nodes_in_group("esporas"):
+		if nodo == null or not is_instance_valid(nodo):
+			continue
+		if nodo.get("atacante") == self:
+			continue
+		if not nodo.has_method("direccion_actual"):
+			continue
+		var rumbo: Vector3 = nodo.call("direccion_actual")
+		if rumbo.length_squared() < 0.001:
+			continue
+		var hacia: Vector3 = global_position - (nodo as Node3D).global_position
+		hacia.y = 0.0
+		var distancia: float = hacia.length()
+		if distancia <= 0.2 or distancia > 10.0:
+			continue
+		if hacia.normalized().dot(rumbo.normalized()) < 0.8:
+			continue
+		var lateral: Vector3 = Vector3(-rumbo.z, 0.0, rumbo.x)
+		if lateral.dot(hacia) < 0.0:
+			lateral = -lateral
+		_direccion_esquiva = lateral.normalized()
+		_tiempo_esquiva = 0.5
+		_cooldown_esquiva = 1.1
+		return
+	_cooldown_esquiva = 0.3
 
 func _evitar_borde(direccion: Vector3) -> Vector3:
 	var plano: Vector2 = Vector2(global_position.x, global_position.z)

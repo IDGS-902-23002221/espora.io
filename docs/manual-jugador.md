@@ -23,7 +23,7 @@ La cámara captura el mouse al entrar a la partida. `Esc` la libera y abre la pa
 - Cada nutriente normal suma **0.03** de tamaño.
 - El nutriente dorado multiplica el crecimiento **×7**.
 - El tope de tamaño sube por horda: **4.0 → 5.0 → 6.0 → 7.0 → 8.0**. Al llegar aparece **TAMAÑO MÁXIMO**: los nutrientes dan **+5 puntos extra** y las absorciones **+25**.
-- Si pasan **4 s sin disparar ni absorber**, empezás a perder **0.02 de tamaño por segundo** (hasta el mínimo 1.0). Disparar o absorber reinicia el contador.
+- Durante los primeros **10 s** no hay presión. Después, si pasan **4 s sin disparar ni absorber**, empezás a perder **0.02 de tamaño por segundo** (hasta el mínimo 1.0). Disparar o absorber reinicia el contador.
 - Cuanto más grande, más lento: la velocidad baja un 8 % por punto de tamaño, con un piso del 60 % de la velocidad base.
 - Al absorber a un NPC ganás el **25 %** de su tamaño; el NPC reaparece con el **60 %** de su tamaño y 3 s de cooldown.
 
@@ -41,7 +41,7 @@ Las esporas son el único ataque; las usan el jugador y los NPC.
 ## Absorción e intentos
 
 - Al vaciar los 3 puntos, el atacante absorbe al objetivo.
-- El jugador tiene **3 intentos**, mostrados como **3 hojas verdes**. Al ser absorbido reaparece más chico y queda **5 s invisible**: puede moverse y disparar, no recibe daño de esporas y mantiene la colisión con el piso. Al recibir impactos, el borde de la pantalla se oscurece en rojo.
+- El jugador tiene **3 intentos**. Las **3 hojas verdes** representan su vida actual. Las 3 hojas son tu vida actual: cada hoja aguanta **2 impactos** (medio golpe y hoja completa); con 6 golpes perdés un intento y las 3 hojas vuelven a verde. Si no recibís daño por 4 s, se regenera 1/2 hoja. Al ser absorbido reaparece más chico y queda **5 s invisible**: puede moverse y disparar, no recibe daño de esporas y mantiene la colisión con el piso. Al recibir impactos, el borde de la pantalla se oscurece en rojo.
 - Al llegar a 0 intentos, la partida termina en derrota.
 - Los NPC también se absorben entre sí y reaparecen.
 
@@ -105,6 +105,9 @@ Se eligen en el carrusel del menú; solo cambian la apariencia y no persisten en
 - **Derrota:** quedarte sin intentos; se muestra el Acto IV — Oscuridad y después el resultado en un panel.
 - **Jugar de nuevo** reinicia la partida; **Volver al lobby** regresa al menú principal. El resultado incluye un campo para escribir tu nombre (vale por la sesión).
 - Cada horda tiene refuerzos a 1/3 y 2/3 del tiempo; el HUD muestra el countdown.
+- Los NPC de la primera horda arrancan con tu mismo tamaño; en las siguientes escalan.
+- Los NPC se atacan entre sí solo si uno es **1.10×** el otro.
+- La esquiva de esporas de los NPC sube por horda: **0% → 20% → 40% → 60% → 80%**.
 - Al cambiar de horda, los NPC mejoran su puntería y aparece un aviso de 3.5 s.
 - Al superar una horda recuperás 1 hoja si estás por debajo de 3.
 

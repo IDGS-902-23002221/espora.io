@@ -26,12 +26,23 @@ var _cura_activa: bool = false
 var _raiz_activa: bool = false
 var _invisibilidad_activa: bool = false
 
+func _ready() -> void:
+	# Arranque con nutrientes suficientes para que no cueste crecer.
+	if escena_nutriente == null:
+		return
+	for i in 12:
+		_total += 1
+		_crear_nutriente()
+
 func _process(delta: float) -> void:
 	if escena_nutriente == null:
 		return
 	_tiempo_juego += delta
 	_temporizador += delta
-	if _temporizador < GameConfig.INTERVALO_REAPARICION_NUTRIENTE:
+	var intervalo: float = GameConfig.INTERVALO_REAPARICION_NUTRIENTE
+	if _tiempo_juego < GameConfig.PRESION_HORDA_RETRASO_INICIAL:
+		intervalo = 0.45
+	if _temporizador < intervalo:
 		return
 	_temporizador = 0.0
 	_crear_siguiente()

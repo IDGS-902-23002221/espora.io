@@ -94,6 +94,7 @@ La espora del jugador golpea NPC; la del NPC golpea jugador y otros NPC. El tira
 - El cielo usa un `ProceduralSkyMaterial` simple de 3 colores, sin texturas grandes.
 - Los `.glb` se importan desde el editor y generan `.import`; sin importación hay fallback a primitivas.
 - El resto del estilo es low-poly por código: primitivas, emisión y tintes.
+- Los spawns especiales viven en `world/nutrient_spawner.gd`; `powerup_spawner.gd` se eliminó por quedar sin uso.
 
 ## Rendimiento
 
