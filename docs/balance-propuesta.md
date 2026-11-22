@@ -106,9 +106,9 @@ Arena circular, radio `RADIO_MAPA = 60`.
 |---|---|---|
 | `NUTRIENTES_ACTIVOS_MAX` | 80 | Tope simultáneo; ajustado en 001.15 |
 | `INTERVALO_REAPARICION_NUTRIENTE` | 0.7 | Un nutriente nuevo cada 0.7 s hasta el tope |
-| `INTERVALO_NUTRIENTE_DORADO` | 9 – 15 | Máximo uno activo |
-| `INTERVALO_ESPORA_ESCUDO` | 9 – 15 | Máximo uno activo |
-| `INTERVALO_ESPORA_VELOZ` | 14 – 22 | Máximo uno activo |
+| `RETRASO_ESPECIALES` | 50 s | Antes solo aparecen nutrientes azules |
+| `PROPORCION_ESPECIALES` | 0.60 | Después de 50 s, 40 % azules / 60 % especiales sobre el total |
+| Dorado / escudo / velocidad | máx. 1 activo cada uno | Si los tres están ocupados, sigue saliendo azul |
 | `NPC_MAX_ABSOLUTO` | 24 | Tope duro; **medir rendimiento en hardware sin GPU dedicada antes de subirlo** |
 | `TAMANIO_APARICION_NPC_MIN` | 0.6 | Referencia de la regla anterior (ya no se usa para el tamaño por bioma) |
 | `TAMANIO_APARICION_NPC_MAX` | 1.8 | Referencia de la regla anterior (ya no se usa para el tamaño por bioma) |
@@ -124,7 +124,7 @@ El nutriente dorado reutiliza la escena normal con `multiplicador_crecimiento = 
 
 La espora escudo aparece como pickup (máximo uno activo, cada 9–15 s) y protege al jugador 10 s; no cambia la regla de tamaño.
 
-La espora veloz aparece como pickup (máximo uno activo, cada 14–22 s) y da +40 % de velocidad durante 10 s; no cambia la regla de tamaño.
+La espora veloz aparece como hoja/pluma verde-cyan con estelas (máximo una activa) y da +40 % de velocidad durante 10 s; no cambia la regla de tamaño. Jugador y NPC pueden tomarla.
 
 Los NPC también consumen nutrientes con la misma `CRECIMIENTO_NUTRIENTE` que el jugador (provisional). Cada NPC elige al hongo más cercano dentro de su radio (jugador u otro NPC) y le aplica la regla de tamaño: puede perseguirlo y dispararle, o huir. Las esporas de NPC pueden dañar a otros NPC y van con anticipación: se pueden esquivar moviéndose. Entre NPC se detectan a `FACTOR_RADIO_NPC_NPC` (0.40) del radio normal, para que el ecosistema no sea caótico. El cooldown de reaparición de NPC es `COOLDOWN_REAPARICION_NPC` (3.0 s).
 

@@ -1,9 +1,9 @@
 extends Node3D
 
-# Tintes provisionales por zona. Se generan como discos planos para no editar .tscn.
-const COLOR_BOSQUE: Color = Color(0.0, 0.35, 0.32, 0.12)
-const COLOR_PANTANO: Color = Color(0.22, 0.10, 0.35, 0.12)
-const COLOR_CUEVA: Color = Color(0.03, 0.06, 0.16, 0.18)
+# Tintes sutiles de bosque: verde musgo, oliva y verde profundo.
+const COLOR_BOSQUE: Color = Color(0.08, 0.28, 0.12, 0.10)
+const COLOR_PANTANO: Color = Color(0.20, 0.24, 0.10, 0.12)
+const COLOR_CUEVA: Color = Color(0.04, 0.12, 0.10, 0.16)
 const ALTURA_BASE: float = 0.02
 const SEPARACION: float = 0.02
 const ALTURA_DISCO: float = 0.01

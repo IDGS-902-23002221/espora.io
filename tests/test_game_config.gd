@@ -9,6 +9,9 @@ func test_umbrales_de_huida_son_coherentes() -> void:
 func test_impactos_para_absorber() -> void:
 	assert_int(GameConfig.IMPACTOS_PARA_ABSORBER).is_equal(3)
 
+func test_reaparicion_invisible_cinco_segundos() -> void:
+	assert_float(GameConfig.COOLDOWN_REAPARICION_JUGADOR).is_equal(5.0)
+
 func test_vida_espora() -> void:
 	assert_float(GameConfig.VIDA_ESPORA).is_equal(3.5)
 

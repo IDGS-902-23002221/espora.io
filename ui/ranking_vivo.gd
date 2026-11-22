@@ -87,7 +87,7 @@ func _construir() -> void:
 func _estilo_panel() -> StyleBoxFlat:
 	# Version compacta del panel general para no tapar la esquina jugable.
 	var s: StyleBoxFlat = EstiloScript.panel()
-	s.bg_color = Color(0.012, 0.045, 0.032, 0.90)
+	s.bg_color = Color(0.012, 0.045, 0.032, 0.55)
 	s.border_color = EstiloScript.BORDE
 	s.content_margin_left = 14.0
 	s.content_margin_right = 14.0

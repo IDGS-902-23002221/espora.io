@@ -3,6 +3,7 @@ extends CharacterBody3D
 const EsporaScript = preload("res://entities/spore/spore.gd")
 const EspeciesScript = preload("res://core/especies.gd")
 const NombresScript = preload("res://core/nombres_npc.gd")
+const FormasScript = preload("res://core/formas.gd")
 # Precargada: evita un @export manual que pueda quedar en null.
 const EscenaEspora: PackedScene = preload("res://entities/spore/spore.tscn")
 
@@ -41,6 +42,12 @@ var _atacante_ultimo: Node3D
 var _en_cooldown: bool = false
 var _tiempo_cooldown: float = 0.0
 var _tiempo_disparo: float = 0.0
+# Efectos de esporas especiales (escudo/velocidad).
+var _tiempo_escudo: float = 0.0
+var _tiempo_velocidad: float = 0.0
+var _tiempo_aviso: float = 0.0
+var _escudo_visual: MeshInstance3D
+var _velocidad_visual: Node3D
 # Objetivo actual: el hongo mas cercano dentro del radio (jugador u otro NPC).
 var _objetivo: Node3D
 var _objetivo_posicion: Vector3 = Vector3.ZERO
@@ -63,6 +70,8 @@ func _ready() -> void:
 	tamanio = tamanio_inicial
 	_aplicar_tamanio()
 	_aplicar_especie()
+	_crear_escudo_visual()
+	_crear_velocidad_visual()
 	if etiqueta_estado != null:
 		etiqueta_estado.visibility_range_end = 40.0
 	# La etiqueta se refresca sola cuando cambian los puntos (impacto o regeneracion).
@@ -73,6 +82,9 @@ func _ready() -> void:
 	_elegir_direccion_deambular()
 
 func _physics_process(delta: float) -> void:
+	_actualizar_escudo(delta)
+	_actualizar_velocidad(delta)
+	_tiempo_aviso = maxf(0.0, _tiempo_aviso - delta)
 	# Durante el cooldown queda oculto, congelado e intocable.
 	if _en_cooldown:
 		_avanzar_cooldown(delta)
@@ -91,6 +103,7 @@ func _physics_process(delta: float) -> void:
 	var direccion: Vector3 = _direccion_actual(delta)
 	var velocidad_base: float = float(_config_horda()["velocidad_npc"])
 	var velocidad: float = Crecimiento.velocidad_por_tamanio(tamanio, velocidad_base)
+	velocidad *= multiplicador_velocidad(_tiempo_velocidad)
 	velocity.x = direccion.x * velocidad
 	velocity.z = direccion.z * velocidad
 
@@ -282,6 +295,91 @@ func esta_activo() -> bool:
 func nombre_actual() -> String:
 	return _nombre
 
+func activar_escudo() -> void:
+	_tiempo_escudo = GameConfig.DURACION_ESPORA_ESCUDO
+	if _escudo_visual != null:
+		_escudo_visual.visible = true
+
+func _actualizar_escudo(delta: float) -> void:
+	if _tiempo_escudo <= 0.0:
+		return
+	_tiempo_escudo = maxf(0.0, _tiempo_escudo - delta)
+	if _tiempo_escudo == 0.0 and _escudo_visual != null:
+		_escudo_visual.visible = false
+
+func activar_velocidad() -> void:
+	_tiempo_velocidad = GameConfig.DURACION_ESPORA_VELOZ
+	if _velocidad_visual != null:
+		_velocidad_visual.visible = true
+
+func _actualizar_velocidad(delta: float) -> void:
+	if _tiempo_velocidad <= 0.0:
+		return
+	_tiempo_velocidad = maxf(0.0, _tiempo_velocidad - delta)
+	if _velocidad_visual == null:
+		return
+	_velocidad_visual.visible = _tiempo_velocidad > 0.0
+	if _velocidad_visual.visible:
+		_velocidad_visual.rotation.y += delta * 6.0
+
+static func multiplicador_velocidad(tiempo: float) -> float:
+	if tiempo > 0.0:
+		return GameConfig.MULT_VELOCIDAD_ESPORA_VELOZ
+	return 1.0
+
+func _crear_escudo_visual() -> void:
+	_escudo_visual = MeshInstance3D.new()
+	var esfera: SphereMesh = SphereMesh.new()
+	esfera.radius = 1.0
+	esfera.height = 2.0
+	esfera.radial_segments = 16
+	esfera.rings = 8
+	_escudo_visual.mesh = esfera
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	material.albedo_color = Color(0.3, 1.0, 0.55, 0.22)
+	material.emission_enabled = true
+	material.emission = Color(0.1, 0.9, 0.35)
+	material.emission_energy_multiplier = 1.5
+	_escudo_visual.material_override = material
+	_escudo_visual.position = Vector3(0.0, 0.95, 0.0)
+	_escudo_visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_escudo_visual.visible = false
+	_visual.add_child(_escudo_visual)
+
+func _crear_velocidad_visual() -> void:
+	_velocidad_visual = Node3D.new()
+	var hoja: MeshInstance3D = MeshInstance3D.new()
+	hoja.mesh = FormasScript.hoja_malla()
+	hoja.material_override = _material_velocidad()
+	hoja.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_velocidad_visual.add_child(hoja)
+	for i in 3:
+		var estela: MeshInstance3D = MeshInstance3D.new()
+		var caja: BoxMesh = BoxMesh.new()
+		caja.size = Vector3(0.04, 0.02, 0.40 + i * 0.12)
+		estela.mesh = caja
+		estela.material_override = _material_velocidad()
+		estela.position = Vector3(0.0, 0.0, -0.28 - i * 0.10)
+		estela.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_velocidad_visual.add_child(estela)
+	_velocidad_visual.position = Vector3(0.0, 0.55, 0.0)
+	_velocidad_visual.visible = false
+	_visual.add_child(_velocidad_visual)
+
+func _material_velocidad() -> StandardMaterial3D:
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	material.albedo_color = Color(0.4, 1.0, 0.7, 0.65)
+	material.emission_enabled = true
+	material.emission = Color(0.15, 0.85, 0.55)
+	material.emission_energy_multiplier = 1.6
+	return material
+
 func _aplicar_tamanio() -> void:
 	if _visual != null:
 		_visual.scale = Vector3.ONE * tamanio
@@ -343,7 +441,10 @@ func _colorear_primitivas(datos: Dictionary) -> void:
 func recibir_impacto(tamanio_atacante: float, atacante: Node3D) -> void:
 	if _en_cooldown:
 		return
+	if _tiempo_escudo > 0.0:
+		return
 	if not impacto_cuenta(tamanio_atacante, tamanio):
+		_avisar_rechazo(atacante)
 		return
 	# Guardar al atacante: al llegar a 0 puntos se lo usa para absorber.
 	_atacante_ultimo = atacante
@@ -412,6 +513,13 @@ func _disparar() -> void:
 	if espora == null:
 		return
 	_tiempo_disparo = float(_config_horda()["cooldown_disparo_npc"])
+
+func _avisar_rechazo(atacante: Node3D) -> void:
+	# Solo avisar si el que disparo fue el jugador.
+	if _tiempo_aviso > 0.0 or atacante == null or not atacante.has_method("puntos_actuales"):
+		return
+	_tiempo_aviso = 1.5
+	get_tree().call_group("hud", "mostrar_aviso", "¡No puedes absorberlo!")
 
 func _on_puntos_cambiados(_restantes: int) -> void:
 	_actualizar_etiqueta()

@@ -10,11 +10,12 @@ Sos una espora que germina al anochecer. Tenés que crecer, sobrevivir a cinco h
 |---|---|
 | Mover | `WASD` |
 | Girar cámara | mouse |
+| Alternar 1.ª / 3.ª persona | `V` |
 | Disparar espora | clic izquierdo |
 | Pausa / saltar cinemática | `Esc` |
 | Elegir skin | menú **Skins** (carrusel) |
 
-La cámara captura el mouse al entrar a la partida. `Esc` la libera y abre la pausa. En la pausa solo hay **Reanudar** y **Abandonar partida**.
+La cámara captura el mouse al entrar a la partida. `Esc` la libera y abre la pausa. En la pausa solo hay **Reanudar** y **Abandonar partida**. La cámara no baja del piso; `V` alterna primera persona para seguir jugando cuando el hongo es muy grande.
 
 ## Crecimiento
 
@@ -38,7 +39,7 @@ Las esporas son el único ataque; las usan el jugador y los NPC.
 ## Absorción e intentos
 
 - Al vaciar los 3 puntos, el atacante absorbe al objetivo.
-- El jugador tiene **3 intentos**. Al ser absorbido reaparece más chico, en otro punto, con 3 s de cooldown.
+- El jugador tiene **3 intentos**. Al ser absorbido reaparece más chico y queda **5 s invisible**: puede moverse y disparar, no recibe daño de esporas y mantiene la colisión con el piso.
 - Al llegar a 0 intentos, la partida termina en derrota.
 - Los NPC también se absorben entre sí y reaparecen.
 
@@ -76,23 +77,28 @@ Las especies visuales son Amanita (Bosque), Cubensis (Pantano) y Melena (Cueva).
 
 ## Objetos especiales
 
-- **Nutriente dorado:** crecimiento ×7, máximo 1 activo, aparece cada 15–25 s.
-- **Espora escudo:** protege de impactos 10 s, máximo 1 activo, aparece cada 15–25 s.
-- **Espora veloz:** +40 % de velocidad 10 s, máximo 1 activo, aparece cada 25–40 s.
+- **Nutriente dorado:** crecimiento ×7, máximo 1 activo. Aparece después de los primeros 50 s.
+- **Espora escudo:** protege de impactos 10 s, máximo 1 activo. Los NPC también pueden tomarla.
+- **Espora veloz:** +40 % de velocidad 10 s, máximo 1 activo. Los NPC también pueden tomarla.
+
+Después de los primeros **50 s**, la producción total se reparte en **40 % nutrientes azules y 60 % esporas especiales**. Antes de eso solo salen azules.
 
 ## Skins
 
 - **Clásico:** Mushnub.
 - **Luminaria:** Mushnub Evolved con brillo cyan.
 - **Rey:** Mushroom King.
+- **Amanita:** el sombrero rojo del bosque.
+- **Cubensis:** hongo de pantano, tonos tierra.
+- **Melena:** la repisa de la cueva.
 
 Se eligen en el carrusel del menú; solo cambian la apariencia y no persisten entre sesiones.
 
 ## Victoria y derrota
 
-- **Victoria:** sobrevivir a la última horda; se muestra el Acto IV — Amanecer y después el resultado.
-- **Derrota:** quedarte sin intentos; se muestra el Acto IV — Oscuridad y después el resultado.
-- **Jugar de nuevo** reinicia la partida; **Abandonar partida** vuelve al menú.
+- **Victoria:** sobrevivir a la última horda; se muestra el Acto IV — Amanecer y después el resultado en un panel.
+- **Derrota:** quedarte sin intentos; se muestra el Acto IV — Oscuridad y después el resultado en un panel.
+- **Jugar de nuevo** reinicia la partida; **Volver al lobby** regresa al menú principal. El resultado incluye un campo para escribir tu nombre (vale por la sesión).
 
 La apertura se muestra una vez por ejecución; el Acto I aparece al iniciar o reiniciar.
 

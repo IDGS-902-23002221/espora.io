@@ -2,7 +2,7 @@ extends Node3D
 
 const EscenaNpc: PackedScene = preload("res://entities/npc/npc.tscn")
 const TinteBiomasScript: GDScript = preload("res://world/tinte_biomas.gd")
-const PowerupSpawnerScript: GDScript = preload("res://world/powerup_spawner.gd")
+const DecoracionScript: GDScript = preload("res://world/decoracion.gd")
 const MenuPrincipalScript: GDScript = preload("res://ui/menu_principal.gd")
 const MenuSkinsScript: GDScript = preload("res://ui/menu_skins.gd")
 const MenuPausaScript: GDScript = preload("res://ui/menu_pausa.gd")
@@ -32,7 +32,7 @@ var _hud: CanvasLayer
 
 func _ready() -> void:
 	_instalar_tinte_biomas()
-	_instalar_powerups()
+	_instalar_decoracion()
 	_instalar_menus()
 	_instalar_ranking()
 	_instalar_cinematica()
@@ -69,10 +69,10 @@ func _instalar_tinte_biomas() -> void:
 	tinte.name = "TinteBiomas"
 	add_child(tinte)
 
-func _instalar_powerups() -> void:
-	var powerups: Node3D = PowerupSpawnerScript.new() as Node3D
-	powerups.name = "Powerups"
-	add_child(powerups)
+func _instalar_decoracion() -> void:
+	var decoracion: Node3D = DecoracionScript.new() as Node3D
+	decoracion.name = "Decoracion"
+	add_child(decoracion)
 
 func _instalar_menus() -> void:
 	_menu_principal = MenuPrincipalScript.new() as CanvasLayer

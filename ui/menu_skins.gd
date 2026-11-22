@@ -184,6 +184,12 @@ func _nombre_visible(nombre: String) -> String:
 			return "Luminaria"
 		EspeciesScript.SKIN_REY:
 			return "Rey"
+		EspeciesScript.SKIN_AMANITA:
+			return "Amanita"
+		EspeciesScript.SKIN_CUBENSIS:
+			return "Cubensis"
+		EspeciesScript.SKIN_MELENA:
+			return "Melena"
 		_:
 			return "Clásico"
 
@@ -193,6 +199,12 @@ func _descripcion(nombre: String) -> String:
 			return "Mushnub Evolved con brillo cyan"
 		EspeciesScript.SKIN_REY:
 			return "Mushroom King con corona"
+		EspeciesScript.SKIN_AMANITA:
+			return "El sombrero rojo del bosque"
+		EspeciesScript.SKIN_CUBENSIS:
+			return "Hongo de pantano, tonos tierra"
+		EspeciesScript.SKIN_MELENA:
+			return "La repisa de la cueva"
 		_:
 			return "El hongo de siempre"
 
@@ -209,6 +221,8 @@ func _actualizar_previa(nombre: String) -> void:
 			var modelo: Node3D = escena.instantiate() as Node3D
 			_modelo_previa.add_child(modelo)
 			EspeciesScript.normalizar_modelo(modelo)
+			if bool(datos.get("tintar_modelo", false)):
+				EspeciesScript.aplicar_colores_modelo(modelo, datos["cuerpo"], datos["sombrero"])
 			if bool(datos["emision"]):
 				EspeciesScript.aplicar_emision_modelo(modelo, datos["sombrero"], float(datos["energia"]))
 			EspeciesScript.reproducir_idle(modelo)

@@ -7,7 +7,7 @@ var _tiempo: float = 0.0
 
 func _ready() -> void:
 	collision_layer = 0
-	collision_mask = 1
+	collision_mask = 3
 	monitorable = false
 	body_entered.connect(_on_body_entered)
 	_crear_colision()

@@ -15,7 +15,7 @@ const CRECIMIENTO_NUTRIENTE: float = 0.03
 const MULT_NUTRIENTE_DORADO: float = 7.0
 const FRACCION_ABSORCION: float = 0.25
 const FRACCION_REAPARICION: float = 0.60
-const COOLDOWN_REAPARICION_JUGADOR: float = 3.0
+const COOLDOWN_REAPARICION_JUGADOR: float = 5.0
 const COOLDOWN_REAPARICION_NPC: float = 3.0
 
 # Puntaje e intentos (provisional, por rubrica).
